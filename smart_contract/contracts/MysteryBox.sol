@@ -59,6 +59,25 @@ contract MysteryBox is
     mapping(NftType => NFT[]) nftPool;
     mapping(uint256 => OpenInfo) requestIdToOpenInfo;
 
+    event AddNFT(address contractAddress, uint256 tokenId, NftType nftType);
+    event CreateBoxType(
+        uint16 commonRate,
+        uint16 rareRate,
+        uint16 veryRareRate
+    );
+    event CreateBox(uint256 boxTypeId, uint256 amount);
+    event RequestOpenBox(
+        uint256 requestId,
+        address opener,
+        uint256 boxTypeId,
+        uint256 amount
+    );
+    event ReceiveNFT(
+        uint256 requestId,
+        address[] nftAddresses,
+        uint256[] tokenIds
+    );
+
     constructor(
         address coordinatorAddress,
         uint64 subsctiptionId,
@@ -100,6 +119,7 @@ contract MysteryBox is
         );
         NFT memory newNFT = NFT(contractAddress, tokenId);
         nftPool[nftType].push(newNFT);
+        emit AddNFT(contractAddress, tokenId, nftType);
     }
 
     function createBoxType(
@@ -117,6 +137,7 @@ contract MysteryBox is
         );
         idToBoxType[boxTypeCounter.current()] = newBoxType;
         boxTypeCounter.increment();
+        emit CreateBoxType(commonRate, rareRate, veryRareRate);
     }
 
     function createBox(uint256 boxTypeId, uint256 amount)
@@ -128,6 +149,8 @@ contract MysteryBox is
             revert MysteryBox__InsufficientNftInPool();
         idToBoxType[boxTypeId].numberOfBox += amount;
         _mint(msg.sender, boxTypeId, amount, "");
+
+        emit CreateBox(boxTypeId, amount);
     }
 
     function openBox(uint256 boxTypeId, uint32 amount)
@@ -144,8 +167,9 @@ contract MysteryBox is
             callbackGasLimit,
             amount
         );
-        OpenInfo memory newOpen = OpenInfo(msg.sender, amount);
+        OpenInfo memory newOpen = OpenInfo(msg.sender, boxTypeId);
         requestIdToOpenInfo[requestId] = newOpen;
+        emit RequestOpenBox(requestId, msg.sender, boxTypeId, amount);
     }
 
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
@@ -161,32 +185,51 @@ contract MysteryBox is
     {
         OpenInfo memory openInfo = requestIdToOpenInfo[requestId];
         BoxType memory boxType = idToBoxType[openInfo.boxTypeId];
+        address[] memory receivedNftAddress = new address[](randomWords.length);
+        uint256[] memory receivedNftTokenId = new uint256[](randomWords.length);
         for (uint256 i = 0; i < randomWords.length; i++) {
             uint256 randomResult = randomWords[i] % 100;
             uint256 nftRandom = uint256(
                 keccak256(abi.encode(randomWords[i], i))
             );
+            NFT memory receivedNft;
             if (randomResult < boxType.veryRareRate) {
-                _getNftFromPool(nftRandom, NftType.VERY_RARE, openInfo.opener);
+                receivedNft = _getNftFromPool(
+                    nftRandom,
+                    NftType.VERY_RARE,
+                    openInfo.opener
+                );
             } else if (randomResult < boxType.veryRareRate + boxType.rareRate) {
-                _getNftFromPool(nftRandom, NftType.RARE, openInfo.opener);
+                receivedNft = _getNftFromPool(
+                    nftRandom,
+                    NftType.RARE,
+                    openInfo.opener
+                );
             } else {
-                _getNftFromPool(nftRandom, NftType.COMMON, openInfo.opener);
+                receivedNft = _getNftFromPool(
+                    nftRandom,
+                    NftType.COMMON,
+                    openInfo.opener
+                );
             }
+            receivedNftAddress[i] = receivedNft.contractAddress;
+            receivedNftTokenId[i] = receivedNft.tokenId;
         }
+        emit ReceiveNFT(requestId, receivedNftAddress, receivedNftTokenId);
     }
 
     function _getNftFromPool(
         uint256 randomWord,
         NftType nftType,
         address receiver
-    ) private {
+    ) private returns (NFT memory receivedNft) {
         NFT[] storage pool = nftPool[nftType];
         uint256 nftIndex = randomWord % pool.length;
-        IERC721(pool[nftIndex].contractAddress).transferFrom(
+        receivedNft = pool[nftIndex];
+        IERC721(receivedNft.contractAddress).transferFrom(
             address(this),
             receiver,
-            pool[nftIndex].tokenId
+            receivedNft.tokenId
         );
         pool[nftIndex] = pool[pool.length - 1];
         pool.pop();
