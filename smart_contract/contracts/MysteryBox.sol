@@ -11,10 +11,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 
-error MysteryBox__InvalidOpenAmount();
+error MysteryBox__InsufficientBoxForOpen();
 error MysteryBox__InsufficientNftInPool();
 error MysteryBox__InvalidBoxTypeId();
 error MysteryBox__InvalidRate();
+error MysteryBox__PriceNotMet();
+error MysteryBox__NotEnoughBoxForSale();
+error MysteryBox__ValueNotGreaterThanZero();
+error MysteryBox__CancelMoreThanSelling();
+error MysteryBox__WithdrawFailed();
 
 contract MysteryBox is
     ERC1155,
@@ -35,6 +40,7 @@ contract MysteryBox is
         uint16 rareRate;
         uint16 veryRareRate;
         uint256 numberOfBox;
+        uint256 price;
     }
 
     struct OpenInfo {
@@ -78,6 +84,22 @@ contract MysteryBox is
         uint256[] tokenIds
     );
 
+    event SellBox(uint256 boxTypeId, uint256 amount);
+    event BuyBox(address buyer, uint256 boxTypeId, uint256 amount);
+    event CancelSelling(uint256 boxTypeId, uint256 amount);
+    event UpdatePrice(uint256 boxTypeId, uint256 newPrice);
+
+    modifier validBoxType(uint256 boxTypeId) {
+        if (boxTypeId >= boxTypeCounter.current())
+            revert MysteryBox__InvalidBoxTypeId();
+        _;
+    }
+
+    modifier greaterThanZero(uint256 value) {
+        if (value < 1) revert MysteryBox__ValueNotGreaterThanZero();
+        _;
+    }
+
     constructor(
         address coordinatorAddress,
         uint64 subsctiptionId,
@@ -86,12 +108,6 @@ contract MysteryBox is
         vrfSubscriptionId = subsctiptionId;
         vrfKeyHash = keyHash;
         vrfCoordinator = VRFCoordinatorV2Interface(coordinatorAddress);
-    }
-
-    modifier validBoxType(uint256 boxTypeId) {
-        if (boxTypeId >= boxTypeCounter.current())
-            revert MysteryBox__InvalidBoxTypeId();
-        _;
     }
 
     function supportsInterface(bytes4 interfaceId)
@@ -125,7 +141,8 @@ contract MysteryBox is
     function createBoxType(
         uint16 commonRate,
         uint16 rareRate,
-        uint16 veryRareRate
+        uint16 veryRareRate,
+        uint256 price
     ) external onlyOwner {
         if (commonRate + rareRate + veryRareRate != 100)
             revert MysteryBox__InvalidRate();
@@ -133,7 +150,8 @@ contract MysteryBox is
             commonRate,
             rareRate,
             veryRareRate,
-            0
+            0,
+            price
         );
         idToBoxType[boxTypeCounter.current()] = newBoxType;
         boxTypeCounter.increment();
@@ -158,7 +176,7 @@ contract MysteryBox is
         validBoxType(boxTypeId)
     {
         if (balanceOf(msg.sender, boxTypeId) < amount)
-            revert MysteryBox__InvalidOpenAmount();
+            revert MysteryBox__InsufficientBoxForOpen();
         _burn(msg.sender, boxTypeId, amount);
         uint256 requestId = vrfCoordinator.requestRandomWords(
             vrfKeyHash,
@@ -178,6 +196,58 @@ contract MysteryBox is
         override
     {
         _onGetRandomWords(requestId, randomWords);
+    }
+
+    function addSellingBox(uint256 boxTypeId, uint256 amount)
+        external
+        onlyOwner
+        validBoxType(boxTypeId)
+    {
+        safeTransferFrom(msg.sender, address(this), boxTypeId, amount, "");
+        emit SellBox(boxTypeId, amount);
+    }
+
+    function buyBox(uint256 boxTypeId, uint256 amount)
+        external
+        payable
+        validBoxType(boxTypeId)
+        greaterThanZero(amount)
+    {
+        if (msg.value < idToBoxType[boxTypeId].price * amount)
+            revert MysteryBox__PriceNotMet();
+        if (amount > balanceOf(address(this), boxTypeId))
+            revert MysteryBox__NotEnoughBoxForSale();
+
+        safeTransferFrom(address(this), msg.sender, boxTypeId, amount, "");
+        emit BuyBox(msg.sender, boxTypeId, amount);
+    }
+
+    function cancelSelling(uint256 boxTypeId, uint256 amount)
+        external
+        onlyOwner
+        validBoxType(boxTypeId)
+        greaterThanZero(amount)
+    {
+        if (balanceOf(address(this), boxTypeId) < amount)
+            revert MysteryBox__CancelMoreThanSelling();
+        safeTransferFrom(address(this), msg.sender, boxTypeId, amount, "");
+        emit CancelSelling(boxTypeId, amount);
+    }
+
+    function updatePrice(uint256 boxTypeId, uint256 newPrice)
+        external
+        onlyOwner
+        validBoxType(boxTypeId)
+    {
+        idToBoxType[boxTypeId].price = newPrice;
+        emit UpdatePrice(boxTypeId, newPrice);
+    }
+
+    function withdraw() external onlyOwner {
+        (bool success, ) = payable(msg.sender).call{
+            value: address(this).balance
+        }("");
+        if (!success) revert MysteryBox__WithdrawFailed();
     }
 
     function _onGetRandomWords(uint256 requestId, uint256[] memory randomWords)
