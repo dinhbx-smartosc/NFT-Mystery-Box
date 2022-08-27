@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "hardhat/console.sol";
 
 error MysteryBox__InsufficientBoxForOpen();
 error MysteryBox__InsufficientNftInPool();
@@ -518,5 +519,13 @@ contract MysteryBox is
             bytes4(
                 keccak256("onERC721Received(address,address,uint256,bytes)")
             );
+    }
+
+    function getNftInPool(NftType nftType)
+        public
+        view
+        returns (NFT[] memory nfts)
+    {
+        nfts = nftPool[nftType];
     }
 }
