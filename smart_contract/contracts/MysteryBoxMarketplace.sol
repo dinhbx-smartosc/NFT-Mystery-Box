@@ -5,46 +5,67 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 error ValueNotGreaterThanZero();
 error PriceNotMet();
 error NotEnoughBoxForSale();
 error CancelMoreThanSelling();
 error WithdrawFailed();
+error NotSaleOwner();
+error UpdateEndSale();
 
 /**
  * @title Marketplace for MysteryBox Contract.
  * @author Dinh Xuan Bui.
- * @notice Owner can delegate contract sell boxes at a fixed base price.
+ * @notice Box's owners can list box for sale.
  */
 contract MysteryBoxMarketPlace is ERC1155Holder, Ownable {
-    // Selling information for a box type.
-    struct SellingInfo {
+    using Counters for Counters.Counter;
+
+    // info of a box sale
+    struct Sale {
+        address seller;
+        uint256 boxId;
         uint256 quantity;
-        uint256 basePrice;
+        uint256 priceEach;
     }
 
     address public immutable MYSTERY_BOX_CONTRACT_ADDRESS;
     IERC1155 private immutable mysteryBox;
 
-    // boxTypeId to selling info
-    mapping(uint256 => SellingInfo) sellingInfos;
+    Counters.Counter private saleIdCounter;
+    // sale id to its info
+    mapping(uint256 => Sale) private idToSale;
+    mapping(address => uint256) private sellerToBalance;
 
-    // Emit when owner adds new box to the contract for sale
-    event SellBox(uint256 boxTypeId, uint256 amount);
+    // Emit when seller create new box sale.
+    event SaleCreated(
+        address seller,
+        uint256 boxId,
+        uint256 amount,
+        uint256 priceEach,
+        uint256 saleId
+    );
 
-    // Emit when users buy box from contract
-    event BuyBox(address buyer, uint256 boxTypeId, uint256 amount);
+    // Emit when users buy box
+    event BoxBought(address buyer, uint256 saleId, uint256 amount);
 
-    // Emit when owner cancel selling of box
-    event CancelSelling(uint256 boxTypeId, uint256 amount);
+    // Emit when seller cancel selling amount of box
+    event SaleCanceled(uint256 saleId, uint256 amount);
 
-    // Emit when owner changes base price of a box type
-    event UpdatePrice(uint256 boxTypeId, uint256 newPrice);
+    // Emit when seller update price of box
+    event PriceUpdated(uint256 saleId, uint256 newPrice);
 
     // Check whether passed value is greater than 0, usually used for check amount passed
     modifier greaterThanZero(uint256 value) {
         if (value < 1) revert ValueNotGreaterThanZero();
+        _;
+    }
+
+    // Check whether caller is the owner of the sale
+    modifier onlySaleOwner(uint256 saleId) {
+        if (idToSale[saleId].seller != msg.sender) revert NotSaleOwner();
         _;
     }
 
@@ -57,120 +78,146 @@ contract MysteryBoxMarketPlace is ERC1155Holder, Ownable {
     }
 
     /**
-     * @notice Add new amount of boxes to the contract for sale.
-     * @dev tranfer boxes of owner to the contract and update selling
-     * info of this box type.
+     * @notice Create new box sale with passed quantity and price.
+     * @dev Transfer boxes of seller to the contract and create new sale.
      *
      * Requirement:
-     * Only for the owner.
-     * amount selling must be greater than 0.
+     * Seller have enough box and approved them for the contract.
+     * Amount selling must be greater than 0.
      *
-     * @param boxTypeId Id of box type.
+     * @param boxId Id of box.
      * @param amount amount of boxes want to sell.
+     * @param priceEach price of each box.
      */
-    function addSellingBox(uint256 boxTypeId, uint256 amount)
-        external
-        onlyOwner
-        greaterThanZero(amount)
-    {
+    function createSale(
+        uint256 boxId,
+        uint256 amount,
+        uint256 priceEach
+    ) external greaterThanZero(amount) {
         mysteryBox.safeTransferFrom(
             msg.sender,
             address(this),
-            boxTypeId,
+            boxId,
             amount,
             ""
         );
-        sellingInfos[boxTypeId].quantity += amount;
-        emit SellBox(boxTypeId, amount);
+
+        Sale memory newSale = Sale(msg.sender, boxId, amount, priceEach);
+        idToSale[saleIdCounter.current()] = newSale;
+
+        emit SaleCreated(
+            msg.sender,
+            boxId,
+            amount,
+            priceEach,
+            saleIdCounter.current()
+        );
+
+        saleIdCounter.increment();
     }
 
     /**
-     * @notice buy amount of boxes from contract.
+     * @notice Buy amount of boxes from sale.
+     * @dev Transfer amount of bought boxes to the buyer and update sale info.
      *
      * Requirement:
-     * amount buying must be greater than 0.
-     * sender must send enough eth.
-     * amount buying must be smaller or equal than selling boxes.
+     * Amount buying must be greater than 0.
+     * Buyer must send enough eth.
+     * Amount buying must be smaller or equal than selling boxes.
      *
-     * @param boxTypeId Id of box type.
-     * @param amount amount of boxes want to buy.
+     * @param saleId Id of the sale.
+     * @param amount Amount of boxes want to buy.
      */
-    function buyBox(uint256 boxTypeId, uint256 amount)
+    function buyBox(uint256 saleId, uint256 amount)
         external
         payable
         greaterThanZero(amount)
     {
-        if (msg.value < sellingInfos[boxTypeId].basePrice * amount)
-            revert PriceNotMet();
-        if (amount > sellingInfos[boxTypeId].quantity)
-            revert NotEnoughBoxForSale();
+        Sale storage sale = idToSale[saleId];
+
+        if (msg.value < sale.priceEach * amount) revert PriceNotMet();
+        if (amount > sale.quantity) revert NotEnoughBoxForSale();
 
         mysteryBox.safeTransferFrom(
             address(this),
             msg.sender,
-            boxTypeId,
+            sale.boxId,
             amount,
             ""
         );
 
-        sellingInfos[boxTypeId].quantity -= amount;
+        sale.quantity -= amount;
+        sellerToBalance[sale.seller] += msg.value;
 
-        emit BuyBox(msg.sender, boxTypeId, amount);
+        emit BoxBought(msg.sender, saleId, amount);
     }
 
     /**
-     * @notice owner cancel selling amount boxes of a box type
+     * @notice Seller cancel selling amount boxes of a sale.
+     * @dev Transfer boxes back to seller and update sale info.
      *
      * Requirements:
-     * only owner can call.
-     * amount cancelling must be greater than 0.
-     * amount cancelling must be smaller or equal than amount selling.
+     * Only the seller can call.
+     * Amount cancelling must be greater than 0.
+     * Amount cancelling must be smaller or equal than amount selling.
      *
-     * @param boxTypeId Id of box type.
+     * @param saleId Id of the sale.
      * @param amount amount of boxes want to cancel.
      */
-    function cancelSelling(uint256 boxTypeId, uint256 amount)
+    function cancelSelling(uint256 saleId, uint256 amount)
         external
-        onlyOwner
+        onlySaleOwner(saleId)
         greaterThanZero(amount)
     {
-        if (sellingInfos[boxTypeId].quantity < amount)
-            revert CancelMoreThanSelling();
+        Sale storage sale = idToSale[saleId];
+
+        if (sale.quantity < amount) revert CancelMoreThanSelling();
+
         mysteryBox.safeTransferFrom(
             address(this),
             msg.sender,
-            boxTypeId,
+            sale.boxId,
             amount,
             ""
         );
-        sellingInfos[boxTypeId].quantity -= amount;
-        emit CancelSelling(boxTypeId, amount);
+        sale.quantity -= amount;
+        emit SaleCanceled(saleId, amount);
     }
 
     /**
-     * @notice owner update price of a box type.
+     * @notice Seller update box's price of a sale.
      *
      * Requirement:
-     * only owner can call.
+     * only seller can call.
      *
-     * @param boxTypeId Id of box type.
+     * @param saleId Id of the sale.
      * @param newPrice new price of this box type.
      */
-    function updatePrice(uint256 boxTypeId, uint256 newPrice)
+    function updatePrice(uint256 saleId, uint256 newPrice)
         external
-        onlyOwner
+        onlySaleOwner(saleId)
     {
-        sellingInfos[boxTypeId].basePrice = newPrice;
-        emit UpdatePrice(boxTypeId, newPrice);
+        if (idToSale[saleId].quantity == 0) revert UpdateEndSale();
+        idToSale[saleId].priceEach = newPrice;
+        emit PriceUpdated(saleId, newPrice);
     }
 
     /**
-     *@notice owner withdraw eth of sold boxes from contract.
+     *@notice seller withdraw eth of sold boxes from contract.
      */
-    function withdraw() external onlyOwner {
-        (bool success, ) = payable(msg.sender).call{
-            value: address(this).balance
-        }("");
+    function withdraw() external {
+        uint256 currentBalance = sellerToBalance[msg.sender];
+        sellerToBalance[msg.sender] = 0;
+
+        (bool success, ) = payable(msg.sender).call{value: currentBalance}("");
         if (!success) revert WithdrawFailed();
+    }
+
+    function getSale(uint256 saleId) public view returns (Sale memory) {
+        return idToSale[saleId];
+    }
+
+    function getBalance(address seller) public view returns (uint256 balance) {
+        balance = sellerToBalance[seller];
     }
 }
