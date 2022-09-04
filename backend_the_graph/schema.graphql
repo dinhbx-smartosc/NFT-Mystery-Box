@@ -1,0 +1,44 @@
+type Gravatar @entity {
+    id: ID!
+    owner: Bytes!
+    displayName: String!
+    imageUrl: String!
+}
+
+type NFT @entity {
+    id: ID!
+    address: Bytes!
+    tokenId: BigInt!
+}
+
+type Box @entity {
+    id: ID!
+    boxId: BigInt!
+    tokenURI: String
+    leftNFT: [NFT!]
+    openedNFT: [NFT!]
+}
+
+type BoxBalance @entity {
+    id: ID!
+    owner: Bytes!
+    boxId: BigInt!
+    balance: BigInt!
+}
+
+type OpenRequest @entity {
+    id: ID!
+    opener: Bytes!
+    boxId: BigInt!
+    amount: BigInt!
+    openedNFT: [NFT!]
+    completed: Boolean!
+}
+
+type Sale @entity {
+    id: ID!
+    seller: Bytes!
+    boxId: BigInt!
+    quantity: BigInt!
+    priceEach: BigInt!
+}

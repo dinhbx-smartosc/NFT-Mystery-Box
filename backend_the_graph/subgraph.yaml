@@ -1,0 +1,58 @@
+specVersion: 0.0.4
+description: Gravatar for Ethereum
+repository: https://github.com/graphprotocol/example-subgraph
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: MysteryBox
+    network: mainnet
+    source:
+      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
+      abi: MysteryBox
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Box
+        - BoxBalance
+        - OpenRequest
+      abis:
+        - name: MysteryBox
+          file: ./abis/MysteryBox.json
+      eventHandlers:
+        - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTransferSingle
+        - event: BoxCreated(uint256,address[],uint256[])
+          handler: handleBoxCreated
+        - event: OpenBoxRequested(uint256,address,uint256,uint256)
+          handler: handleOpenBoxRequested
+        - event: NFTReceived(uint256,address[],uint256[])
+          handler: handleNFTReceived
+      file: ./src/mapping.ts
+  - kind: ethereum/contract
+    name: Marketplace
+    network: mainnet
+    source:
+      address: "0x2E645469f354BB4F5c8a05B3b30A929361cf77eC"
+      abi: MysteryBoxMarketPlace
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.5
+      language: wasm/assemblyscript
+      entities:
+        - Sale
+      abis:
+        - name: MysteryBoxMarketPlace
+          file: ./abis/MysteryBoxMarketPlace.json
+      eventHandlers:
+        - event: SaleCreated(address,uint256,uint256,uint256,uint256)
+          handler: handleSaleCreated
+        - event: BoxBought(address,uint256,uint256)
+          handler: handleBoxBought
+        - event: SaleCanceled(uint256,uint256)
+          handler: handleSaleCanceled
+        - event: PriceUpdated(uint256,uint256)
+          handler: handlePriceUpdated
+      file: ./src/mapping.ts
