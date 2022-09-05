@@ -2,7 +2,6 @@
   "name": "backend_the_graph",
   "version": "0.1.0",
   "scripts": {
-    "build-contract": "solc contracts/Gravity.sol --abi -o abis --overwrite && solc contracts/Gravity.sol --bin -o bin --overwrite",
     "create": "graph create dinhbx-smartosc/backend_the_graph --node https://api.thegraph.com/deploy/",
     "create-local": "graph create dinhbx-smartosc/backend_the_graph --node http://127.0.0.1:8020",
     "codegen": "graph codegen",
