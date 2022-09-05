@@ -38,7 +38,7 @@ describe("MysteryBox", () => {
             GAS_PRICE_LINK
         );
 
-        await vrfCoordinator.deployed()
+        await vrfCoordinator.deployed();
 
         // Create subscription for VRF
         const createSubscriptionTx = await vrfCoordinator.createSubscription();
@@ -203,10 +203,7 @@ describe("MysteryBox", () => {
 
         // Emit event
         it("Should emit OpenBoxRequested event with the right args", async () => {
-            const openTx = await mysteryBox.openBox(
-                FIRST_BOX_ID,
-                OPEN_AMOUNT
-            );
+            const openTx = await mysteryBox.openBox(FIRST_BOX_ID, OPEN_AMOUNT);
             const txReceipt = await openTx.wait();
 
             // First event is of burn function, second is of requestRandomWords, so OpenBoxRequested is 3th event.
@@ -229,10 +226,7 @@ describe("MysteryBox", () => {
         });
 
         it("Should store the right open info", async () => {
-            const openTx = await mysteryBox.openBox(
-                FIRST_BOX_ID,
-                OPEN_AMOUNT
-            );
+            const openTx = await mysteryBox.openBox(FIRST_BOX_ID, OPEN_AMOUNT);
             const txReceipt = await openTx.wait();
 
             const requestId = txReceipt.events![2].args!.requestId;

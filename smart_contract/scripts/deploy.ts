@@ -1,18 +1,63 @@
 import { ethers } from "hardhat";
+import {
+    BASE_FEE,
+    FUND_AMOUNT,
+    GAS_PRICE_LINK,
+    KEY_HASH,
+} from "../utils/constant";
 
 async function main() {
-    const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+    const MysteryBox = await ethers.getContractFactory("MysteryBox");
+    const VRFCoordinatorV2Mock = await ethers.getContractFactory(
+        "VRFCoordinatorV2Mock"
+    );
+    const SampleNFT = await ethers.getContractFactory("SampleNFT");
+    const MarketPlace = await ethers.getContractFactory(
+        "MysteryBoxMarketPlace"
+    );
+    const [owner] = await ethers.getSigners();
 
-    const lockedAmount = ethers.utils.parseEther("1");
+    console.log("Deploying VRFCoordinatorMock...");
 
-    const Lock = await ethers.getContractFactory("Lock");
-    const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+    const vrfCoordinator = await VRFCoordinatorV2Mock.deploy(
+        BASE_FEE,
+        GAS_PRICE_LINK
+    );
 
-    await lock.deployed();
+    await vrfCoordinator.deployed();
+    console.log("VRFCoordinatorMock deployed at:", vrfCoordinator.address);
 
-    console.log("Lock with 1 ETH deployed to:", lock.address);
+    // Create subscription for VRF
+    const createSubscriptionTx = await vrfCoordinator.createSubscription();
+    const createSubscriptionReceipt = await createSubscriptionTx.wait();
+    const subscriptionCreatedEvent = createSubscriptionReceipt.events![0];
+    const subscriptionId = subscriptionCreatedEvent.args!.subId;
+
+    // Fund subscription
+    await vrfCoordinator.fundSubscription(subscriptionId, FUND_AMOUNT);
+
+    console.log("Deploying MysteryBox...");
+
+    const mysteryBox = await MysteryBox.deploy(
+        vrfCoordinator.address,
+        subscriptionId,
+        KEY_HASH
+    );
+    await mysteryBox.deployed();
+    console.log("MysteryBox deployed at:", mysteryBox.address);
+
+    //Add mysteryBox contract to VRF subscription's consumers.
+    await vrfCoordinator.addConsumer(subscriptionId, mysteryBox.address);
+
+    console.log("Deploying NFT...");
+    const sampleNft = await SampleNFT.deploy();
+    await sampleNft.deployed();
+    console.log("NFT deployed at:", sampleNft.address);
+
+    console.log("Deploying Marketplace...");
+    const markeplace = await MarketPlace.deploy(mysteryBox.address);
+    await markeplace.deployed();
+    console.log("Marketplace deployed at:", markeplace.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
