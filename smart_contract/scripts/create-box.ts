@@ -19,7 +19,7 @@ async function main() {
     );
 
     await sampleNft.setApprovalForAll(mysteryBox.address, true);
-    const tokenIds = [0, 2, 4, 6];
+    const tokenIds = [9, 10, 11, 12];
     const addresses = [
         sampleNft.address,
         sampleNft.address,
@@ -30,11 +30,6 @@ async function main() {
     console.log("Creating box...");
     await mysteryBox.createBox(addresses, tokenIds);
     console.log("Box created");
-
-    const box = await mysteryBox.getBoxInfo(FIRST_BOX_ID);
-    console.log(
-        box
-    );
 }
 
 // We recommend this pattern to be able to use async/await everywhere

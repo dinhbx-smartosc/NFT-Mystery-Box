@@ -4,9 +4,25 @@ import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useMoralis } from "react-moralis";
 
 const Header = () => {
     const navigate = useNavigate();
+    const [hasMetamask, setHasMetamask] = useState(false);
+    const { enableWeb3, isWeb3Enabled, account } = useMoralis();
+    console.log(account);
+    useEffect(() => {
+        if (typeof window.ethereum !== "undefined") {
+            setHasMetamask(true);
+            console.log(window.ethereum);
+            window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
+                if (accounts.length) {
+                    enableWeb3();
+                }
+            });
+        }
+    }, []);
 
     return (
         <AppBar position="static">
@@ -50,9 +66,31 @@ const Header = () => {
                     </Button>
                     <Button sx={{ my: 2, color: "white", display: "block" }}>History</Button>
                 </Box>
-                <Button variant="contained" color="inherit" sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}>
-                    Connect
-                </Button>
+                {hasMetamask ? (
+                    isWeb3Enabled ? (
+                        <Button
+                            variant="contained"
+                            color="inherit"
+                            sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}
+                        >
+                            Connected
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            color="inherit"
+                            sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}
+                            onClick={() => {
+                                enableWeb3();
+                                // window.localStorage.setItem("enabled", "true");
+                            }}
+                        >
+                            Connect
+                        </Button>
+                    )
+                ) : (
+                    <Typography variant="button">Please install Metamask!</Typography>
+                )}
             </Toolbar>
         </AppBar>
     );
