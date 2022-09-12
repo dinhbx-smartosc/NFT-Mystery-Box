@@ -5,7 +5,7 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
@@ -25,7 +25,7 @@ error AddressesAndTokenIdsMismatch();
  * @author Dinh Xuan Bui
  *
  * @notice Owner can use NFTs to create mystery boxes.
- * Used NFTs will be boxed and generate the number of 
+ * Used NFTs will be boxed and generate the number of
  * boxes equal to the number of NFTs.
  * Each box can open a random NFT from boxed NFTs.
  * Opened NFT will be remove from boxed NFTs of the box.
@@ -33,7 +33,7 @@ error AddressesAndTokenIdsMismatch();
 contract MysteryBox is
     ERC1155,
     ERC1155Holder,
-    IERC721Receiver,
+    ERC721Holder,
     VRFConsumerBaseV2,
     Ownable
 {
@@ -57,15 +57,17 @@ contract MysteryBox is
     uint16 immutable requestConfirmations = 3;
     VRFCoordinatorV2Interface private vrfCoordinator;
 
-    Counters.Counter private boxTypeCounter;
+    Counters.Counter public boxTypeCounter;
     mapping(uint256 => NFT[]) private idToBoxedNFT; /* boxId (tokenID) to its properties */
+    mapping(uint256 => string) private idToURI; /* boxId (tokenID) to its metadata URI */
     mapping(uint256 => OpenInfo) private requestIdToOpenInfo; /* VRF requestId to requester's box openning info */
 
     // Emit when owner create new box
     event BoxCreated(
         uint256 boxId,
         address[] nftContractAddresses,
-        uint256[] nftTokenIDs
+        uint256[] nftTokenIDs,
+        string uri
     );
 
     // Emit when user send request to open box
@@ -144,10 +146,11 @@ contract MysteryBox is
      * nftAddresses and tokenIds must correspond to each other.
      * Owner must own NFTs and approved them for the contract.
      */
-    function createBox(address[] memory nftAddresses, uint256[] memory tokenIds)
-        external
-        onlyOwner
-    {
+    function createBox(
+        address[] memory nftAddresses,
+        uint256[] memory tokenIds,
+        string memory metadataURI
+    ) external onlyOwner {
         if (nftAddresses.length != tokenIds.length)
             revert AddressesAndTokenIdsMismatch();
         if (nftAddresses.length < 1) revert ValueNotGreaterThanZero();
@@ -165,7 +168,13 @@ contract MysteryBox is
         }
 
         _mint(msg.sender, boxTypeCounter.current(), nftAddresses.length, "");
-        emit BoxCreated(boxTypeCounter.current(), nftAddresses, tokenIds);
+        idToURI[boxTypeCounter.current()] = metadataURI;
+        emit BoxCreated(
+            boxTypeCounter.current(),
+            nftAddresses,
+            tokenIds,
+            metadataURI
+        );
 
         boxTypeCounter.increment();
     }
@@ -254,19 +263,14 @@ contract MysteryBox is
         emit NFTReceived(requestId, receivedNftAddresses, receivedNftTokenIds);
     }
 
-    /**
-     * @dev Need for contract to receive ERC721 token. See {ERC721 - safeTransferFrom()}.
-     */
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external pure override returns (bytes4) {
-        return
-            bytes4(
-                keccak256("onERC721Received(address,address,uint256,bytes)")
-            );
+    function uri(uint256 boxId)
+        public
+        view
+        virtual
+        override
+        returns (string memory)
+    {
+        return idToURI[boxId];
     }
 
     function getBoxInfo(uint256 boxId) public view returns (NFT[] memory) {

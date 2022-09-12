@@ -19,7 +19,7 @@ async function main() {
     await mysteryBox.setApprovalForAll(markeplace.address, true)
 
     console.log("Creating sale...");
-    await markeplace.createSale(FIRST_BOX_ID, 1, ethers.utils.parseEther("1.0"))
+    await markeplace.createSale(FIRST_BOX_ID, 2, ethers.utils.parseEther("1.0"))
     console.log("Sale created!");
     
     

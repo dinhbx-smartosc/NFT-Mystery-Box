@@ -14,27 +14,27 @@ async function main() {
     const mysteryBox = MysteryBox.attach(
         "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
     );
-    const sampleNft = SampleNFT.attach(
-        "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
+    const cuteCatNft = SampleNFT.attach(
+        "0x0165878A594ca255338adfa4d48449f69242Eb8F"
     );
 
-    await sampleNft.setApprovalForAll(mysteryBox.address, true);
-    const tokenIds = [0, 2, 4, 6];
+    await cuteCatNft.setApprovalForAll(mysteryBox.address, true);
+    const tokenIds = [0, 1, 5, 7];
     const addresses = [
-        sampleNft.address,
-        sampleNft.address,
-        sampleNft.address,
-        sampleNft.address,
+        cuteCatNft.address,
+        cuteCatNft.address,
+        cuteCatNft.address,
+        cuteCatNft.address,
     ];
 
     console.log("Creating box...");
-    await mysteryBox.createBox(addresses, tokenIds);
-    console.log("Box created");
-
-    const box = await mysteryBox.getBoxInfo(FIRST_BOX_ID);
-    console.log(
-        box
+    await mysteryBox.createBox(
+        addresses,
+        tokenIds,
+        "http://127.0.0.1:8080/ipfs/QmXicvbZ3Si5XQdtSS985PmH8ZSsEV98Z1KJPc9x15RJWc/0"
     );
+    console.log(await mysteryBox.uri(0))
+    console.log("Box created");
 }
 
 // We recommend this pattern to be able to use async/await everywhere

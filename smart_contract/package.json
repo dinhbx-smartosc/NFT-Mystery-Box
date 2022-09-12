@@ -8,7 +8,6 @@
         "compile": "npx hardhat compile",
         "hh:node": "npx hardhat node --hostname 0.0.0.0",
         "deploy": "npx hardhat run scripts/deploy.ts --network localhost",
-        "create-box": "npx hardhat run scripts/create-box.ts --network localhost",
         "transfer-box": "npx hardhat run scripts/transfer-box.ts --network localhost",
         "open-box": "npx hardhat run scripts/open-box.ts --network localhost",
         "create-sale": "npx hardhat run scripts/create-sale.ts --network localhost"
