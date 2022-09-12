@@ -66,7 +66,11 @@ describe("Integration", () => {
         //Add mysteryBox contract to VRF subscription's consumers.
         await vrfCoordinator.addConsumer(subscriptionId, mysteryBox.address);
 
-        const sampleNft = await SampleNFT.deploy();
+        const sampleNft = await SampleNFT.deploy(
+            "Sample NFT",
+            "SPN",
+            ""
+        );
         await sampleNft.deployed();
 
         const marketplace = await MysteryBoxMarketplace.deploy(

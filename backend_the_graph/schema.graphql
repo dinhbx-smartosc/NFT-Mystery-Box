@@ -15,7 +15,7 @@ type Box @entity {
 type BoxBalance @entity {
   id: ID!
   owner: Bytes!
-  boxId: BigInt!
+  box: Box!
   balance: BigInt!
 }
 
@@ -23,7 +23,7 @@ type OpenRequest @entity {
   id: ID!
   requestId: BigInt!
   opener: Bytes!
-  boxId: BigInt!
+  box: Box!
   amount: BigInt!
   openedNFT: [NFT!]
   completed: Boolean!
@@ -33,7 +33,7 @@ type Sale @entity {
   id: ID!
   saleId: BigInt!
   seller: Bytes!
-  boxId: BigInt!
+  box: Box!
   quantity: BigInt!
   priceEach: BigInt!
 }

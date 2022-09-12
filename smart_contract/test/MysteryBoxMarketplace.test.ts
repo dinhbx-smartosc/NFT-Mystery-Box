@@ -33,7 +33,7 @@ describe("MysteryBoxMarketplace", () => {
 
         await mysteryBox.deployed();
 
-        const nftA = await SampleNFT.deploy();
+        const nftA = await SampleNFT.deploy("Sample NFT", "SPN", "");
         await nftA.deployed();
 
         // Create {BOX_AMOUNT} boxes with {FIRST_BOX_ID}.
@@ -45,7 +45,7 @@ describe("MysteryBoxMarketplace", () => {
             tokenIds.push(i);
         }
 
-        await mysteryBox.createBox(nftAddresses, tokenIds);
+        await mysteryBox.createBox(nftAddresses, tokenIds, "");
 
         const marketplace = await MysteryBoxMarketplace.deploy(
             mysteryBox.address

@@ -24,7 +24,7 @@ dataSources:
       eventHandlers:
         - event: TransferSingle(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleTransferSingle
-        - event: BoxCreated(uint256,address[],uint256[])
+        - event: BoxCreated(uint256,address[],uint256[],string)
           handler: handleBoxCreated
         - event: OpenBoxRequested(uint256,address,uint256,uint256)
           handler: handleOpenBoxRequested

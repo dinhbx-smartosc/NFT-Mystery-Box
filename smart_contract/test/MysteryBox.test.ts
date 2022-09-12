@@ -59,7 +59,7 @@ describe("MysteryBox", () => {
         //Add mysteryBox contract to VRF subscription's consumers.
         await vrfCoordinator.addConsumer(subscriptionId, mysteryBox.address);
 
-        const nftA = await SampleNFT.deploy();
+        const nftA = await SampleNFT.deploy("Sample NFT", "SPN", "");
         await nftA.deployed();
 
         return {
@@ -96,7 +96,7 @@ describe("MysteryBox", () => {
             nftAddresses.push(nftA.address);
 
             await expect(
-                mysteryBox.createBox(nftAddresses, tokenIds)
+                mysteryBox.createBox(nftAddresses, tokenIds, "")
             ).to.be.revertedWithCustomError(
                 mysteryBox,
                 "AddressesAndTokenIdsMismatch"
@@ -105,7 +105,7 @@ describe("MysteryBox", () => {
 
         it("Should be reverted if amount create is 0", async () => {
             await expect(
-                mysteryBox.createBox([], [])
+                mysteryBox.createBox([], [], "")
             ).to.be.revertedWithCustomError(
                 mysteryBox,
                 "ValueNotGreaterThanZero"
@@ -114,14 +114,14 @@ describe("MysteryBox", () => {
 
         // Emit event
         it("Should emit BoxCreated event with the right args", async () => {
-            await expect(mysteryBox.createBox(nftAddresses, tokenIds))
+            await expect(mysteryBox.createBox(nftAddresses, tokenIds, ""))
                 .to.emit(mysteryBox, "BoxCreated")
-                .withArgs(FIRST_BOX_ID, nftAddresses, tokenIds);
+                .withArgs(FIRST_BOX_ID, nftAddresses, tokenIds, "");
         });
 
         // Happy case
         it("Should create new box with passed NFTs", async () => {
-            await mysteryBox.createBox(nftAddresses, tokenIds);
+            await mysteryBox.createBox(nftAddresses, tokenIds, "");
 
             const boxInfo = await mysteryBox.getBoxInfo(FIRST_BOX_ID);
 
@@ -133,7 +133,7 @@ describe("MysteryBox", () => {
         });
 
         it("Should transfer NFT from the owner to the contract", async () => {
-            await mysteryBox.createBox(nftAddresses, tokenIds);
+            await mysteryBox.createBox(nftAddresses, tokenIds, "");
 
             const ownerPromise: Promise<string>[] = [];
             for (let i = 0; i < nftAddresses.length; i++) {
@@ -150,7 +150,7 @@ describe("MysteryBox", () => {
         });
 
         it("Should mint right amount of box for the owner", async () => {
-            await mysteryBox.createBox(nftAddresses, tokenIds);
+            await mysteryBox.createBox(nftAddresses, tokenIds, "");
 
             const balance = await mysteryBox.balanceOf(
                 owner.address,
@@ -172,7 +172,7 @@ describe("MysteryBox", () => {
                 nftAddresses.push(nftA.address);
                 tokenIds.push(i);
             }
-            await mysteryBox.createBox(nftAddresses, tokenIds);
+            await mysteryBox.createBox(nftAddresses, tokenIds, "");
         });
 
         // Reverted case

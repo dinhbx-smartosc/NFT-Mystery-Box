@@ -37,7 +37,7 @@ export function handleTransferSingle(event: TransferSingle): void {
   if (toBalance === null) {
     toBalance = new BoxBalance(toId);
     toBalance.owner = event.params.to;
-    toBalance.boxId = event.params.id;
+    toBalance.box = boxId;
     toBalance.balance = event.params.value;
   } else {
     toBalance.balance = toBalance.balance.plus(event.params.value);
@@ -49,6 +49,7 @@ export function handleBoxCreated(event: BoxCreated): void {
   const boxId = event.params.boxId;
   const nftContractAddresses = event.params.nftContractAddresses;
   const nftTokenIDs = event.params.nftTokenIDs;
+  const uri = event.params.uri;
 
   const id = boxId.toHex();
   const box = new Box(id);
@@ -64,7 +65,7 @@ export function handleBoxCreated(event: BoxCreated): void {
     nfts.push(nftId);
   }
   box.boxId = boxId;
-  box.tokenURI = "";
+  box.tokenURI = uri;
   box.leftNFT = nfts;
   box.openedNFT = [];
   box.save();
@@ -79,7 +80,7 @@ export function handleOpenBoxRequested(event: OpenBoxRequested): void {
   const request = new OpenRequest(requestId.toHex());
   request.requestId = requestId;
   request.opener = opener;
-  request.boxId = boxId;
+  request.box = boxId.toHex();
   request.amount = amount;
   request.openedNFT = [];
   request.completed = false;
@@ -124,7 +125,7 @@ export function handleSaleCreated(event: SaleCreated): void {
   const sale = new Sale(saleId.toHex());
   sale.saleId = saleId;
   sale.seller = seller;
-  sale.boxId = boxId;
+  sale.box = boxId.toHex();
   sale.quantity = amount;
   sale.priceEach = priceEach;
   sale.save();
