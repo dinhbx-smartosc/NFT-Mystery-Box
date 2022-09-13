@@ -1,6 +1,6 @@
 import "./App.css";
 import Header from "./components/Header/Header";
-import SellingBox from "./pages/SellingBox";
+import SellingBox from "./pages/SellingBox/SellingBox";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import OwnedBox from "./pages/OwnedBox/OwnedBox";
 import SellingBoxDetail from "./pages/SellingBoxDetail";

@@ -4,34 +4,51 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import { CardActionArea } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
 
-const OwnedBoxCard = () => {
+const OwnedBoxCard = ({ data }) => {
     const navigate = useNavigate();
+    const [metadata, setMetadata] = useState(null);
 
-    return (
+    useEffect(() => {
+        const loadData = async () => {
+            const res = await axios.get(data.tokenURI);
+            if (res.data) {
+                setMetadata(res.data);
+            }
+        };
+        if (!metadata) {
+            loadData();
+        }
+    }, []);
+
+    return metadata ? (
         <Card sx={{ maxWidth: 345 }}>
             <CardActionArea
                 onClick={() => {
-                    navigate("/owned_detail/12");
+                    navigate(`/owned_detail/${data.id}`);
                 }}
             >
                 <CardMedia
                     component="img"
                     height="300"
-                    image="https://lh3.googleusercontent.com/jWiVhOj8YbjvlnRinz2wcuxTqR5rRx3QcKs6K4EmKdZHs8SqLsFjQP4kg81E-o34ibx40AJKKGsVDGH2aYPkJEK98VW01eZQyF-Lwgg=w329"
+                    image={metadata.image}
                     alt="green iguana"
                     sx={{ objectFit: "contain" }}
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div">
-                        Lizard
+                        {metadata.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Owned: 20
+                        {`Owned: ${data.balance}`}
                     </Typography>
                 </CardContent>
             </CardActionArea>
         </Card>
+    ) : (
+        <div></div>
     );
 };
 

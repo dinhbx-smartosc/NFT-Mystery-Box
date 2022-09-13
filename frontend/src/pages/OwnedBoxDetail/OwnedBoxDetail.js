@@ -8,11 +8,64 @@ import {
     CardActions,
     Button,
 } from "@mui/material";
+import { useParams } from "react-router-dom";
 import Counter from "../../components/Counter";
 import NftCarousel from "../../components/NftCarousel/NftCarousel";
-import { useNavigate } from "react-router-dom";
+import { useQuery, gql } from "@apollo/client";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const GET_BOX_DETAIL = gql`
+    query GetBoxDetail($id: String) {
+        boxBalance(id: $id) {
+            balance
+            box {
+                tokenURI
+                leftNFT {
+                    address
+                    tokenId
+                }
+                openedNFT {
+                    address
+                    tokenId
+                }
+            }
+        }
+    }
+`;
 
 const OwnedBoxDetail = () => {
+    const { id } = useParams();
+    const [boxData, setBoxData] = useState(null);
+    const [nfts, setNfts] = useState(null);
+
+    const { loading, error, data } = useQuery(GET_BOX_DETAIL, { variables: { id } });
+
+    useEffect(() => {
+        const loadBoxData = async () => {
+            const res = await axios.get(data.boxBalance.box.tokenURI);
+            if (res.data) {
+                setBoxData(res.data);
+            }
+        };
+        if (data && !boxData) {
+            loadBoxData();
+        }
+        if (data) {
+            const nftData = [];
+            const leftNfts = data.boxBalance.box.leftNFT.map((item) => ({
+                ...item,
+                opened: false,
+            }));
+            const openedNfts = data.boxBalance.box.openedNFT.map((item) => ({
+                ...item,
+                opened: true,
+            }));
+            nftData.push(...leftNfts, ...openedNfts);
+            setNfts(nftData);
+        }
+    }, [data]);
+
     return (
         <Container>
             <Box
@@ -24,7 +77,7 @@ const OwnedBoxDetail = () => {
                     <CardMedia
                         sx={{ flex: 5, maxWidth: "50%" }}
                         component="img"
-                        image="https://public.nftstatic.com/static/nft/res/nft-cex/S3/1655089248414_m9y6y7lrogtfc20xpeq60sn4rrgkjf7y.png"
+                        image={boxData?.image}
                         alt="green iguana"
                     />
                     <Box
@@ -35,20 +88,17 @@ const OwnedBoxDetail = () => {
                     >
                         <CardContent>
                             <Typography gutterBottom variant="h4" component="div">
-                                Lizard
+                                {boxData?.name}
                             </Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Owned: 20
+                                {`Owned: ${data?.boxBalance.balance}`}
                             </Typography>
                             <Typography
                                 variant="body1"
                                 color="text.secondary"
                                 sx={{ marginTop: 5 }}
                             >
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio
-                                inventore culpa libero a quod. Similique omnis, quos cum, cumque
-                                incidunt eum sit iure consectetur sed beatae reiciendis, at itaque
-                                magnam.
+                                {boxData?.description}
                             </Typography>
                         </CardContent>
                         <CardActions sx={{ my: 5 }}>
@@ -72,7 +122,7 @@ const OwnedBoxDetail = () => {
                     </Box>
                 </Card>
             </Box>
-            <NftCarousel></NftCarousel>
+            {nfts ? <NftCarousel nfts={nfts}></NftCarousel> : <></>}
         </Container>
     );
 };
