@@ -2,9 +2,10 @@ import {
   BoxCreated,
   OpenBoxRequested,
   NFTReceived,
-  TransferSingle
+  TransferSingle,
+  ApprovalForAll
 } from "../generated/MysteryBox/MysteryBox";
-import { Box, BoxBalance, NFT, OpenRequest, Sale } from "../generated/schema";
+import { Approval, Box, BoxBalance, NFT, OpenRequest, Sale } from "../generated/schema";
 import {
   SaleCreated,
   BoxBought,
@@ -101,17 +102,53 @@ export function handleNFTReceived(event: NFTReceived): void {
 
   const nfts: string[] = [];
 
+  const box = Box.load(request.box);
+  if (!box) {
+    return;
+  }
+  const openedNFT = box.openedNFT;
+
   for (let i = 0; i < tokenIds.length; i++) {
     const address = nftAddresses[i];
     const tokenId = tokenIds[i];
     const nftId = address.toHex() + "." + tokenId.toHex();
     nfts.push(nftId);
+    openedNFT.push(nftId);
   }
 
   request.openedNFT = nfts;
   request.completed = true;
-
   request.save();
+
+  box.openedNFT = openedNFT;
+
+  if (box.leftNFT) {
+    const newLeftNfts: string[] = [];
+    const leftNFT = box.leftNFT;
+    for (let i = 0; i < leftNFT.length; i++) {
+      const nft = leftNFT[i];
+      if (!nfts.includes(nft)) {
+        newLeftNfts.push(nft);
+      }
+    }
+    box.leftNFT = newLeftNfts;
+  }
+
+  box.save();
+}
+
+export function handleApprovalForAll(event: ApprovalForAll): void {
+  const approvalId = event.params.account.toHex() + "." + event.params.operator.toHex();
+  let approval = Approval.load(approvalId);
+
+  if (!approval) {
+    approval = new Approval(approvalId);
+    approval.account = event.params.account;
+    approval.operator = event.params.operator;
+  }
+
+  approval.approved = event.params.approved;
+  approval.save();
 }
 
 //MarketPlace

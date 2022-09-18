@@ -30,6 +30,8 @@ dataSources:
           handler: handleOpenBoxRequested
         - event: NFTReceived(uint256,address[],uint256[])
           handler: handleNFTReceived
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
       file: ./src/mapping.ts
   - kind: ethereum/contract
     name: Marketplace

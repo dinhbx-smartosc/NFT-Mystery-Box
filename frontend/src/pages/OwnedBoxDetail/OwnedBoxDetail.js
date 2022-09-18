@@ -9,17 +9,22 @@ import {
     Button,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
-import Counter from "../../components/Counter";
+import Counter from "../../components/Counter/Counter";
 import NftCarousel from "../../components/NftCarousel/NftCarousel";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery, gql, useLazyQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useWeb3ExecuteFunction } from "react-moralis";
+import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
+import { mysteryBoxAddress } from "../../constant/contractAddresses";
+import SellBoxDialog from "../../components/SellBoxDialog/SellBoxDialog";
 
 const GET_BOX_DETAIL = gql`
     query GetBoxDetail($id: String) {
         boxBalance(id: $id) {
             balance
             box {
+                boxId
                 tokenURI
                 leftNFT {
                     address
@@ -36,10 +41,21 @@ const GET_BOX_DETAIL = gql`
 
 const OwnedBoxDetail = () => {
     const { id } = useParams();
+    const { loading, error, data } = useQuery(GET_BOX_DETAIL, { variables: { id } });
     const [boxData, setBoxData] = useState(null);
     const [nfts, setNfts] = useState(null);
+    const [openAmount, setOpenAmount] = useState(0);
+    const [isSelling, setSelling] = useState(false);
 
-    const { loading, error, data } = useQuery(GET_BOX_DETAIL, { variables: { id } });
+    const { fetch: fetchOpen, isFetching: isFetchingOpen } = useWeb3ExecuteFunction({
+        abi: mysteryBoxAbi,
+        contractAddress: mysteryBoxAddress,
+        functionName: "openBox",
+        params: {
+            boxId: data?.boxBalance.box.boxId,
+            amount: openAmount,
+        },
+    });
 
     useEffect(() => {
         const loadBoxData = async () => {
@@ -66,6 +82,10 @@ const OwnedBoxDetail = () => {
         }
     }, [data]);
 
+    const handleOpen = () => {
+        fetchOpen();
+    };
+
     return (
         <Container>
             <Box
@@ -73,7 +93,7 @@ const OwnedBoxDetail = () => {
                     py: 3,
                 }}
             >
-                <Card sx={{ display: "flex", p: 5 }}>
+                <Card sx={{ display: "flex", p: 5 }} variant="outlined">
                     <CardMedia
                         sx={{ flex: 5, maxWidth: "50%" }}
                         component="img"
@@ -109,20 +129,39 @@ const OwnedBoxDetail = () => {
                                     justifyContent: "space-between",
                                 }}
                             >
-                                <Counter />
+                                <Counter number={openAmount} setNumber={setOpenAmount} />
                                 <Button
                                     variant="contained"
                                     size="large"
                                     sx={{ flex: 2, marginLeft: 1 }}
+                                    onClick={handleOpen}
+                                    disabled={isFetchingOpen}
                                 >
                                     Open
                                 </Button>
                             </Box>
                         </CardActions>
+                        <CardActions sx={{ my: 5 }}>
+                            <Button
+                                variant="outlined"
+                                size="large"
+                                onClick={() => setSelling(true)}
+                            >
+                                Send to marketplace
+                            </Button>
+                        </CardActions>
                     </Box>
                 </Card>
             </Box>
             {nfts ? <NftCarousel nfts={nfts}></NftCarousel> : <></>}
+            {isSelling && (
+                <SellBoxDialog
+                    owner={id.split(".")[0]}
+                    boxId={data?.boxBalance.box.boxId}
+                    isSelling={isSelling}
+                    handleClose={() => setSelling(false)}
+                />
+            )}
         </Container>
     );
 };

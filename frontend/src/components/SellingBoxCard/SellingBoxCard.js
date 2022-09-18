@@ -2,55 +2,59 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
-import { Box, Button, CardActionArea, CardActions } from "@mui/material";
-import Counter from "../Counter";
+import { Box, CardActionArea, CardActions } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { utils as ethersUtils } from "ethers";
+import { BuyingBox } from "../BuyingBox";
 
-const SellingBoxCard = () => {
+const SellingBoxCard = ({ data, queryData }) => {
     const navigate = useNavigate();
+    const [boxData, setBoxData] = useState(null);
+
+    useEffect(() => {
+        const loadData = async () => {
+            const res = await axios.get(data.box.tokenURI);
+            if (res.data) {
+                setBoxData(res.data);
+            }
+        };
+        if (!boxData) {
+            loadData();
+        }
+    }, []);
 
     return (
         <Card sx={{ maxWidth: 345 }}>
             <CardActionArea
                 onClick={() => {
-                    navigate("/selling_detail/12");
+                    navigate(`/selling_detail/${data.id}`);
                 }}
             >
                 <CardMedia
                     component="img"
                     height="300"
-                    image="https://public.nftstatic.com/static/nft/zipped/8061c9dbe0d74430b53d904468d946d9_zipped.png"
+                    image={boxData?.image}
                     alt="green iguana"
                     sx={{ objectFit: "contain" }}
                 />
                 <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
-                        Lizard
+                    <Typography gutterBottom variant="h5" component="div" noWrap>
+                        {boxData?.name}
                     </Typography>
                     <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                         <Typography gutterBottom variant="subtitle1" component="div">
-                            0.5ETH
+                            {`${ethersUtils.formatEther(data.priceEach)}ETH`}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            Amount: 20
+                            {`Amount: ${data.quantity}`}
                         </Typography>
                     </Box>
                 </CardContent>
             </CardActionArea>
             <CardActions sx={{ m: 1 }}>
-                <Box
-                    sx={{
-                        display: "flex",
-                        flexGrow: 1,
-                        alignItems: "end",
-                        justifyContent: "space-between",
-                    }}
-                >
-                    <Counter />
-                    <Button variant="contained" size="large" sx={{ flex: 2, marginLeft: 1 }}>
-                        Buy
-                    </Button>
-                </Box>
+                <BuyingBox saleId={data.id} priceEach={data.priceEach} queryData={queryData} />
             </CardActions>
         </Card>
     );

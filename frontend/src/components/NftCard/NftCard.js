@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 const NftCard = ({ nft }) => {
-    const { data, error, fetch, isFetching, isLoading } = useWeb3ExecuteFunction({
+    const { fetch } = useWeb3ExecuteFunction({
         abi: nftAbi,
         contractAddress: nft.address,
         functionName: "tokenURI",
@@ -20,22 +20,20 @@ const NftCard = ({ nft }) => {
     const [nftData, setNftData] = useState(null);
 
     useEffect(() => {
-        if (!data) {
-            fetch();
-        }
-    }, []);
-
-    useEffect(() => {
-        const getNftData = async () => {
-            const res = await axios.get(data);
-            if (res.data) {
-                setNftData(res.data);
-            }
-        };
-        if (data && !nftData) {
-            getNftData();
-        }
-    }, [data]);
+        fetch({
+            onSuccess: (data) => {
+                const getNftData = async () => {
+                    const res = await axios.get(data);
+                    if (res.data) {
+                        setNftData(res.data);
+                    }
+                };
+                if (data && !nftData) {
+                    getNftData();
+                }
+            },
+        });
+    });
 
     return (
         <Box sx={{ minWidth: 200, maxWidth: 200, minHeight: 200, position: "relative" }}>

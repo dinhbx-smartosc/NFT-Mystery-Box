@@ -5,7 +5,7 @@ import { useMoralis } from "react-moralis";
 
 const GET_OWED_BOXES = gql`
     query GetOwnedBoxes($account: String) {
-        boxBalances(where: { owner: $account }) {
+        boxBalances(where: { owner: $account, balance_gt: "0" }) {
             id
             balance
             box {
@@ -28,12 +28,12 @@ const OwnedBox = () => {
                 }}
             >
                 <Typography variant="h4" sx={{ py: 3 }}>
-                    Selling Boxes
+                    Owned Boxes
                 </Typography>
                 <Grid container spacing={2}>
                     {data ? (
                         data.boxBalances.map((item) => (
-                            <Grid item xs={3}>
+                            <Grid item xs={3} key={item.id}>
                                 <OwnedBoxCard
                                     data={{
                                         id: item.id,

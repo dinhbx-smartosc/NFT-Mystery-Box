@@ -38,7 +38,7 @@ const OwnedBoxCard = ({ data }) => {
                     sx={{ objectFit: "contain" }}
                 />
                 <CardContent>
-                    <Typography gutterBottom variant="h5" component="div">
+                    <Typography gutterBottom variant="h5" component="div" noWrap>
                         {metadata.name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">

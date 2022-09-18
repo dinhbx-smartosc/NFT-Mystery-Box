@@ -1,40 +1,47 @@
-import { ethers } from "hardhat";
-import {
-    BASE_FEE,
-    FIRST_BOX_ID,
-    FUND_AMOUNT,
-    GAS_PRICE_LINK,
-    KEY_HASH,
-} from "../utils/constant";
+import hre from "hardhat";
 
 async function main() {
-    const MysteryBox = await ethers.getContractFactory("MysteryBox");
-    const SampleNFT = await ethers.getContractFactory("SampleNFT");
 
-    const mysteryBox = MysteryBox.attach(
-        "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-    );
-    const cuteCatNft = SampleNFT.attach(
-        "0x0165878A594ca255338adfa4d48449f69242Eb8F"
-    );
+    await hre.run("create-box", {
+        contract: "cuteCat",
+        ids: [0, 1, 2, 3]
+    })
 
-    await cuteCatNft.setApprovalForAll(mysteryBox.address, true);
-    const tokenIds = [0, 1, 5, 7];
-    const addresses = [
-        cuteCatNft.address,
-        cuteCatNft.address,
-        cuteCatNft.address,
-        cuteCatNft.address,
-    ];
+    await hre.run("create-box", {
+        contract: "goldenTiger",
+        ids: [9, 8, 7, 6]
+    })
 
-    console.log("Creating box...");
-    await mysteryBox.createBox(
-        addresses,
-        tokenIds,
-        "http://127.0.0.1:8080/ipfs/QmXicvbZ3Si5XQdtSS985PmH8ZSsEV98Z1KJPc9x15RJWc/0"
-    );
-    console.log(await mysteryBox.uri(0))
-    console.log("Box created");
+    await hre.run("create-box", {
+        contract: "thinkingApe",
+        ids: [2, 4, 6, 8]
+    })
+
+    await hre.run("create-box", {
+        contract: "whale",
+        ids: [1, 5, 7, 9]
+    })
+
+    await hre.run("create-box", {
+        contract: "cuteCat",
+        ids: [7, 8, 9]
+    })
+
+    await hre.run("create-box", {
+        contract: "goldenTiger",
+        ids: [1, 2, 3, 4]
+    })
+
+    await hre.run("create-box", {
+        contract: "thinkingApe",
+        ids: [1, 3, 5, 7]
+    })
+
+    await hre.run("create-box", {
+        contract: "whale",
+        ids: [0, 2, 3, 4, 6, 8]
+    })
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
