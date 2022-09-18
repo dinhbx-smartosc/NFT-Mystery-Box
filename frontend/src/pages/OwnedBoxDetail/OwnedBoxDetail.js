@@ -8,11 +8,84 @@ import {
     CardActions,
     Button,
 } from "@mui/material";
-import Counter from "../../components/Counter";
+import { useParams } from "react-router-dom";
+import Counter from "../../components/Counter/Counter";
 import NftCarousel from "../../components/NftCarousel/NftCarousel";
-import { useNavigate } from "react-router-dom";
+import { useQuery, gql, useLazyQuery } from "@apollo/client";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useWeb3ExecuteFunction } from "react-moralis";
+import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
+import { mysteryBoxAddress } from "../../constant/contractAddresses";
+import SellBoxDialog from "../../components/SellBoxDialog/SellBoxDialog";
+
+const GET_BOX_DETAIL = gql`
+    query GetBoxDetail($id: String) {
+        boxBalance(id: $id) {
+            balance
+            box {
+                boxId
+                tokenURI
+                leftNFT {
+                    address
+                    tokenId
+                }
+                openedNFT {
+                    address
+                    tokenId
+                }
+            }
+        }
+    }
+`;
 
 const OwnedBoxDetail = () => {
+    const { id } = useParams();
+    const { loading, error, data } = useQuery(GET_BOX_DETAIL, { variables: { id } });
+    const [boxData, setBoxData] = useState(null);
+    const [nfts, setNfts] = useState(null);
+    const [openAmount, setOpenAmount] = useState(0);
+    const [isSelling, setSelling] = useState(false);
+
+    const { fetch: fetchOpen, isFetching: isFetchingOpen } = useWeb3ExecuteFunction({
+        abi: mysteryBoxAbi,
+        contractAddress: mysteryBoxAddress,
+        functionName: "openBox",
+        params: {
+            boxId: data?.boxBalance.box.boxId,
+            amount: openAmount,
+        },
+    });
+
+    useEffect(() => {
+        const loadBoxData = async () => {
+            const res = await axios.get(data.boxBalance.box.tokenURI);
+            if (res.data) {
+                setBoxData(res.data);
+            }
+        };
+        if (data && !boxData) {
+            loadBoxData();
+        }
+        if (data) {
+            const nftData = [];
+            const leftNfts = data.boxBalance.box.leftNFT.map((item) => ({
+                ...item,
+                opened: false,
+            }));
+            const openedNfts = data.boxBalance.box.openedNFT.map((item) => ({
+                ...item,
+                opened: true,
+            }));
+            nftData.push(...leftNfts, ...openedNfts);
+            setNfts(nftData);
+        }
+    }, [data]);
+
+    const handleOpen = () => {
+        fetchOpen();
+    };
+
     return (
         <Container>
             <Box
@@ -20,11 +93,11 @@ const OwnedBoxDetail = () => {
                     py: 3,
                 }}
             >
-                <Card sx={{ display: "flex", p: 5 }}>
+                <Card sx={{ display: "flex", p: 5 }} variant="outlined">
                     <CardMedia
                         sx={{ flex: 5, maxWidth: "50%" }}
                         component="img"
-                        image="https://public.nftstatic.com/static/nft/res/nft-cex/S3/1655089248414_m9y6y7lrogtfc20xpeq60sn4rrgkjf7y.png"
+                        image={boxData?.image}
                         alt="green iguana"
                     />
                     <Box
@@ -35,20 +108,17 @@ const OwnedBoxDetail = () => {
                     >
                         <CardContent>
                             <Typography gutterBottom variant="h4" component="div">
-                                Lizard
+                                {boxData?.name}
                             </Typography>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Owned: 20
+                                {`Owned: ${data?.boxBalance.balance}`}
                             </Typography>
                             <Typography
                                 variant="body1"
                                 color="text.secondary"
                                 sx={{ marginTop: 5 }}
                             >
-                                Lorem ipsum dolor sit amet consectetur adipisicing elit. Distinctio
-                                inventore culpa libero a quod. Similique omnis, quos cum, cumque
-                                incidunt eum sit iure consectetur sed beatae reiciendis, at itaque
-                                magnam.
+                                {boxData?.description}
                             </Typography>
                         </CardContent>
                         <CardActions sx={{ my: 5 }}>
@@ -59,20 +129,39 @@ const OwnedBoxDetail = () => {
                                     justifyContent: "space-between",
                                 }}
                             >
-                                <Counter />
+                                <Counter number={openAmount} setNumber={setOpenAmount} />
                                 <Button
                                     variant="contained"
                                     size="large"
                                     sx={{ flex: 2, marginLeft: 1 }}
+                                    onClick={handleOpen}
+                                    disabled={isFetchingOpen}
                                 >
                                     Open
                                 </Button>
                             </Box>
                         </CardActions>
+                        <CardActions sx={{ my: 5 }}>
+                            <Button
+                                variant="outlined"
+                                size="large"
+                                onClick={() => setSelling(true)}
+                            >
+                                Send to marketplace
+                            </Button>
+                        </CardActions>
                     </Box>
                 </Card>
             </Box>
-            <NftCarousel></NftCarousel>
+            {nfts ? <NftCarousel nfts={nfts}></NftCarousel> : <></>}
+            {isSelling && (
+                <SellBoxDialog
+                    owner={id.split(".")[0]}
+                    boxId={data?.boxBalance.box.boxId}
+                    isSelling={isSelling}
+                    handleClose={() => setSelling(false)}
+                />
+            )}
         </Container>
     );
 };

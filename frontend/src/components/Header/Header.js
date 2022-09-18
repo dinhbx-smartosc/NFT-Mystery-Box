@@ -11,11 +11,10 @@ const Header = () => {
     const navigate = useNavigate();
     const [hasMetamask, setHasMetamask] = useState(false);
     const { enableWeb3, isWeb3Enabled, account } = useMoralis();
-    console.log(account);
     useEffect(() => {
         if (typeof window.ethereum !== "undefined") {
             setHasMetamask(true);
-            console.log(window.ethereum);
+
             window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
                 if (accounts.length) {
                     enableWeb3();
@@ -64,7 +63,14 @@ const Header = () => {
                     >
                         Owned
                     </Button>
-                    <Button sx={{ my: 2, color: "white", display: "block" }}>History</Button>
+                    <Button
+                        sx={{ my: 2, color: "white", display: "block" }}
+                        onClick={() => {
+                            navigate("/history");
+                        }}
+                    >
+                        History
+                    </Button>
                 </Box>
                 {hasMetamask ? (
                     isWeb3Enabled ? (

@@ -8,8 +8,8 @@ type Box @entity {
   id: ID!
   boxId: BigInt!
   tokenURI: String
-  leftNFT: [NFT!]
-  openedNFT: [NFT!]
+  leftNFT: [NFT!]!
+  openedNFT: [NFT!]!
 }
 
 type BoxBalance @entity {
@@ -36,4 +36,11 @@ type Sale @entity {
   box: Box!
   quantity: BigInt!
   priceEach: BigInt!
+}
+
+type Approval @entity {
+  id: ID!
+  account: Bytes!
+  operator: Bytes!
+  approved: Boolean!
 }
