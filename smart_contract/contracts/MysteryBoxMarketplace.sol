@@ -57,6 +57,8 @@ contract MysteryBoxMarketPlace is ERC1155Holder, Ownable {
     // Emit when seller update price of box
     event PriceUpdated(uint256 saleId, uint256 newPrice);
 
+    event Withdraw(address account, uint256 value);
+
     // Check whether passed value is greater than 0, usually used for check amount passed
     modifier greaterThanZero(uint256 value) {
         if (value < 1) revert ValueNotGreaterThanZero();
@@ -211,6 +213,7 @@ contract MysteryBoxMarketPlace is ERC1155Holder, Ownable {
 
         (bool success, ) = payable(msg.sender).call{value: currentBalance}("");
         if (!success) revert WithdrawFailed();
+        emit Withdraw(msg.sender, currentBalance);
     }
 
     function getSale(uint256 saleId) public view returns (Sale memory) {

@@ -5,12 +5,21 @@ import {
   TransferSingle,
   ApprovalForAll
 } from "../generated/MysteryBox/MysteryBox";
-import { Approval, Box, BoxBalance, NFT, OpenRequest, Sale } from "../generated/schema";
+import {
+  Approval,
+  Box,
+  BoxBalance,
+  EthBalance,
+  NFT,
+  OpenRequest,
+  Sale
+} from "../generated/schema";
 import {
   SaleCreated,
   BoxBought,
   SaleCanceled,
-  PriceUpdated
+  PriceUpdated,
+  Withdraw
 } from "../generated/Marketplace/MysteryBoxMarketPlace";
 
 const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
@@ -175,10 +184,24 @@ export function handleBoxBought(event: BoxBought): void {
     return;
   }
   sale.quantity = sale.quantity.minus(event.params.amount);
+
+  const balanceId = sale.seller.toHex();
+  let balance = EthBalance.load(balanceId);
+  const addedBalance = event.params.amount.times(sale.priceEach);
+
+  if (!balance) {
+    balance = new EthBalance(balanceId);
+    balance.account = sale.seller;
+    balance.balance = addedBalance;
+  } else {
+    balance.balance = balance.balance.plus(addedBalance);
+  }
+
+  balance.save();
   sale.save();
 }
 
-export function handleOpenSaleCanceled(event: SaleCanceled): void {
+export function handleSaleCanceled(event: SaleCanceled): void {
   const saleId = event.params.saleId.toHex();
   const sale = Sale.load(saleId);
   if (sale === null) {
@@ -196,4 +219,16 @@ export function handlePriceUpdated(event: PriceUpdated): void {
   }
   sale.priceEach = event.params.newPrice;
   sale.save();
+}
+
+export function handleWithdraw(event: Withdraw): void {
+  const balanceId = event.params.account.toHex();
+  let balance = EthBalance.load(balanceId);
+
+  if (!balance) {
+    return;
+  }
+
+  balance.balance = balance.balance.minus(event.params.value);
+  balance.save();
 }

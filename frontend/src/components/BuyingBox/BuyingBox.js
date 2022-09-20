@@ -1,9 +1,9 @@
 import { Box, Button } from "@mui/material";
-import Counter from "../Counter/Counter";
 import { useWeb3ExecuteFunction } from "react-moralis";
 import marketplaceAbi from "../../constant/abi/Marketplace.json";
 import { marketplaceAddress } from "../../constant/contractAddresses";
 import { useState } from "react";
+import { Counter } from "../Counter";
 
 const BuyingBox = ({ saleId, priceEach, queryData }) => {
     const [buyAmount, setBuyAmount] = useState("");

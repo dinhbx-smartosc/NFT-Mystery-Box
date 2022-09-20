@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { BigNumber } from "@ethersproject/bignumber";
 
 const main = async () => {
     console.time();
@@ -25,7 +26,31 @@ const test2 = async () => {
         "0x5FbDB2315678afecb367f032d93F642f64180aa3"
     );
 
-    await vrfCoordinator.fulfillRandomWords(1, mysteryBox.address);
+    //await vrfCoordinator.fulfillRandomWords(1, mysteryBox.address);
+
+    vrfCoordinator.on(
+        "RandomWordsRequested",
+        async (
+            keyHash,
+            requestId: BigNumber,
+            preSeed,
+            subId,
+            minimumRequestConfirmations,
+            callbackGasLimit,
+            numWords,
+            sender: string
+        ) => {
+            try {
+                await vrfCoordinator.fulfillRandomWords(requestId, sender);
+                console.log(
+                    "Returned random words to requestId:",
+                    requestId.toString()
+                );
+            } catch {
+                console.log("Return faild to requestId:", requestId.toString());
+            }
+        }
+    );
 };
 
 test2();

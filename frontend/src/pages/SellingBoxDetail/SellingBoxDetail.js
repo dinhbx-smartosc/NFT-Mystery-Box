@@ -39,6 +39,7 @@ const GET_SALE_DETAIL = gql`
 `;
 
 const SellingBoxDetail = () => {
+
     const { id } = useParams();
     const [boxData, setBoxData] = useState(null);
     const [nfts, setNfts] = useState(null);
@@ -78,7 +79,7 @@ const SellingBoxDetail = () => {
                     py: 3,
                 }}
             >
-                <Card sx={{ display: "flex", p: 5 }}>
+                <Card sx={{ display: "flex", p: 5 }} variant="outlined">
                     <CardMedia
                         sx={{ flex: 5, maxWidth: "50%" }}
                         component="img"
