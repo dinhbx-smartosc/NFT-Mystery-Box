@@ -57,4 +57,6 @@ dataSources:
           handler: handleSaleCanceled
         - event: PriceUpdated(uint256,uint256)
           handler: handlePriceUpdated
+        - event: Withdraw(address,uint256)
+          handler: handleWithdraw
       file: ./src/mapping.ts

@@ -1,11 +1,13 @@
 import { Add, Remove } from "@mui/icons-material";
 import { Box, IconButton, TextField } from "@mui/material";
 
-const Counter = ({ number, setNumber }) => {
-
+export const Counter = ({ number, setNumber }) => {
     const handleIncrement = () => {
         if (number < 20) {
-            setNumber((prev) => prev + 1);
+            setNumber((prev) => {
+                if (prev === "") return 1;
+                return Number.parseInt(prev) + 1;
+            });
         }
     };
 
@@ -42,5 +44,3 @@ const Counter = ({ number, setNumber }) => {
         </Box>
     );
 };
-
-export default Counter;

@@ -44,3 +44,9 @@ type Approval @entity {
   operator: Bytes!
   approved: Boolean!
 }
+
+type EthBalance @entity {
+  id: ID!
+  account: Bytes!
+  balance: BigInt!
+}

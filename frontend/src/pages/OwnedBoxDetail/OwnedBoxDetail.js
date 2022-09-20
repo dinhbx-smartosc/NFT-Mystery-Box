@@ -9,15 +9,15 @@ import {
     Button,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
-import Counter from "../../components/Counter/Counter";
 import NftCarousel from "../../components/NftCarousel/NftCarousel";
-import { useQuery, gql, useLazyQuery } from "@apollo/client";
+import { useQuery, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useWeb3ExecuteFunction } from "react-moralis";
 import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
 import { mysteryBoxAddress } from "../../constant/contractAddresses";
-import SellBoxDialog from "../../components/SellBoxDialog/SellBoxDialog";
+import { SellBoxModal } from "../../components/SellBoxModal";
+import { Counter } from "../../components/Counter";
 
 const GET_BOX_DETAIL = gql`
     query GetBoxDetail($id: String) {
@@ -41,7 +41,9 @@ const GET_BOX_DETAIL = gql`
 
 const OwnedBoxDetail = () => {
     const { id } = useParams();
-    const { loading, error, data } = useQuery(GET_BOX_DETAIL, { variables: { id } });
+    const { loading, error, data, startPolling, stopPolling } = useQuery(GET_BOX_DETAIL, {
+        variables: { id },
+    });
     const [boxData, setBoxData] = useState(null);
     const [nfts, setNfts] = useState(null);
     const [openAmount, setOpenAmount] = useState(0);
@@ -155,11 +157,12 @@ const OwnedBoxDetail = () => {
             </Box>
             {nfts ? <NftCarousel nfts={nfts}></NftCarousel> : <></>}
             {isSelling && (
-                <SellBoxDialog
+                <SellBoxModal
                     owner={id.split(".")[0]}
                     boxId={data?.boxBalance.box.boxId}
                     isSelling={isSelling}
                     handleClose={() => setSelling(false)}
+                    queryData={{ startPolling, stopPolling }}
                 />
             )}
         </Container>

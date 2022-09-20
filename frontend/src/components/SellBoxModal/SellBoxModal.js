@@ -35,7 +35,7 @@ const GET_APPROVAL = gql`
     }
 `;
 
-const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
+export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }) => {
     console.log("Selling Modal");
 
     const [sellingStep, setSellingStep] = useState(Steps.initializeSale);
@@ -43,7 +43,7 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
     const [priceEach, setPriceEach] = useState("");
     const { data, error, fetch, isFetching, isLoading } = useWeb3ExecuteFunction();
 
-    const { data: queryData } = useQuery(GET_APPROVAL, {
+    const { data: approveData } = useQuery(GET_APPROVAL, {
         variables: {
             id: owner.toLowerCase() + "." + marketplaceAddress.toLowerCase(),
         },
@@ -59,7 +59,7 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
     }, [sellAmount, priceEach]);
 
     useEffect(() => {
-        if (queryData && queryData.approval?.approved) {
+        if (approveData && approveData.approval?.approved) {
             if (sellingStep === Steps.approveBox) {
                 setSellingStep(Steps.createSale);
             }
@@ -68,7 +68,7 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
                 setSellingStep(Steps.approveBox);
             }
         }
-    }, [queryData, sellingStep]);
+    }, [approveData, sellingStep]);
 
     const handleConfirm = () => {
         if (sellingStep === Steps.approveBox) {
@@ -101,8 +101,12 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
                     },
                 },
                 onSuccess: (result) => {
+                    queryData.startPolling(1000);
                     result.wait().then((tx) => {
-                        setSellingStep(Steps.completed);
+                        setSellingStep(Steps.completed + 1);
+                        setTimeout(() => {
+                            queryData.stopPolling();
+                        }, 3000);
                     });
                 },
                 onError: (error) => {
@@ -128,7 +132,7 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
                     fullWidth
                     sx={{ mt: 7 }}
                     value={sellAmount}
-                    disabled={isFetching}
+                    disabled={isLoading || sellingStep > Steps.createSale}
                     onChange={(e) => setSellAmount(e.target.value)}
                 />
                 <TextField
@@ -137,7 +141,7 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
                     fullWidth
                     sx={{ mt: 2 }}
                     value={priceEach}
-                    disabled={isFetching}
+                    disabled={isLoading || sellingStep > Steps.createSale}
                     onChange={(e) => setPriceEach(e.target.value)}
                 />
                 <Stepper activeStep={sellingStep} sx={{ mt: 5 }}>
@@ -161,7 +165,7 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
                             size="large"
                             fullWidth
                             sx={{ mr: 2 }}
-                            disabled={isFetching}
+                            disabled={isLoading || sellingStep > Steps.createSale}
                             onClick={handleConfirm}
                         >
                             {sellingStep === Steps.createSale ? "Create" : "Approve"}
@@ -191,5 +195,3 @@ const SellBoxDialog = ({ isSelling, handleClose, owner, boxId }) => {
         </Modal>
     );
 };
-
-export default SellBoxDialog;

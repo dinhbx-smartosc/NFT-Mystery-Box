@@ -8,6 +8,12 @@ import { ApolloClient, InMemoryCache, ApolloProvider, gql } from "@apollo/client
 const client = new ApolloClient({
     uri: "http://127.0.0.1:8000/subgraphs/name/dinhbx-smartosc/backend_the_graph",
     cache: new InMemoryCache(),
+    defaultOptions: {
+        watchQuery: {
+            fetchPolicy: "cache-and-network",
+            errorPolicy: "ignore",
+        },
+    },
 });
 
 const root = ReactDOM.createRoot(document.getElementById("root"));

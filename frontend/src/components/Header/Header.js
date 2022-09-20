@@ -14,7 +14,6 @@ const Header = () => {
     useEffect(() => {
         if (typeof window.ethereum !== "undefined") {
             setHasMetamask(true);
-
             window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
                 if (accounts.length) {
                     enableWeb3();

@@ -18,7 +18,7 @@ const GET_OWED_BOXES = gql`
 const OwnedBox = () => {
     const { account } = useMoralis();
 
-    const { loading, error, data } = useQuery(GET_OWED_BOXES, { variables: { account } });
+    const { loading, error, data } = useQuery(GET_OWED_BOXES, { variables: { account }, fetchPolicy: "cache-and-network" });
 
     return (
         <Container>
