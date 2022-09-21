@@ -9,7 +9,6 @@ import {
     Button,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
-import NftCarousel from "../../components/NftCarousel/NftCarousel";
 import { useQuery, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -18,6 +17,7 @@ import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
 import { mysteryBoxAddress } from "../../constant/contractAddresses";
 import { SellBoxModal } from "../../components/SellBoxModal";
 import { Counter } from "../../components/Counter";
+import { NftCarousel } from "../../components/NftCarousel";
 
 const GET_BOX_DETAIL = gql`
     query GetBoxDetail($id: String) {
