@@ -4,7 +4,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 const main = async () => {
     console.time();
     const p = () =>
-        new Promise<void>((resolve, reject) => {
+        new Promise<void>((resolve, _reject) => {
             setTimeout(() => {
                 console.log("wait 2s");
                 resolve();
@@ -31,13 +31,13 @@ const test2 = async () => {
     vrfCoordinator.on(
         "RandomWordsRequested",
         async (
-            keyHash,
+            _keyHash,
             requestId: BigNumber,
-            preSeed,
-            subId,
-            minimumRequestConfirmations,
-            callbackGasLimit,
-            numWords,
+            _preSeed,
+            _subId,
+            _minimumRequestConfirmations,
+            _callbackGasLimit,
+            _numWords,
             sender: string
         ) => {
             try {

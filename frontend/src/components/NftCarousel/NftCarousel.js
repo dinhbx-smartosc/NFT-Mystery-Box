@@ -1,7 +1,7 @@
 import { Card, CardMedia, Stack, Typography } from "@mui/material";
 import NftCard from "../NftCard/NftCard";
 
-const NftCarousel = ({ nfts }) => {
+export const NftCarousel = ({ nfts }) => {
     return (
         <Card sx={{ p: 3, my: 1 }} variant="outlined">
             <Typography variant="h5" sx={{ marginBottom: 1 }}>
@@ -15,5 +15,3 @@ const NftCarousel = ({ nfts }) => {
         </Card>
     );
 };
-
-export default NftCarousel;

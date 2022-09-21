@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
 import { OwnedSaleCard } from "../../components/OwedSaleCard";
 import { WithdrawModal } from "../../components/WithdrawModal";
+import { Image } from "mui-image";
 
 const GET_SELLING_BOXES = gql`
     query GetSellingBoxes {
@@ -80,117 +81,119 @@ const SellingBox = () => {
     };
 
     return (
-        <Container>
-            <Box
-                sx={{
-                    py: 3,
-                }}
-            >
-                <Typography variant="h4" sx={{ py: 3 }}>
-                    Selling Boxes
-                </Typography>
+        <>
+            <Container>
                 <Box
                     sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        my: 3,
+                        py: 3,
                     }}
                 >
-                    <Box sx={{ display: "flex", alignItems: "center" }}>
-                        <Typography sx={{ mr: 3 }}>Sold by</Typography>
-                        <RadioGroup
-                            row
-                            value={seller}
-                            onChange={(_, newValue) => {
-                                setSeller(newValue);
-                            }}
-                        >
-                            <FormControlLabel
-                                value={Seller.others}
-                                control={<Radio size="small" />}
-                                label="Others"
-                            />
-                            <FormControlLabel
-                                value={Seller.user}
-                                control={<Radio size="small" />}
-                                label="You"
-                            />
-                        </RadioGroup>
-                    </Box>
+                    <Typography variant="h4" sx={{ py: 3 }}>
+                        Selling Boxes
+                    </Typography>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            my: 3,
+                        }}
+                    >
+                        <Box sx={{ display: "flex", alignItems: "center" }}>
+                            <Typography sx={{ mr: 3 }}>Sold by</Typography>
+                            <RadioGroup
+                                row
+                                value={seller}
+                                onChange={(_, newValue) => {
+                                    setSeller(newValue);
+                                }}
+                            >
+                                <FormControlLabel
+                                    value={Seller.others}
+                                    control={<Radio size="small" />}
+                                    label="Others"
+                                />
+                                <FormControlLabel
+                                    value={Seller.user}
+                                    control={<Radio size="small" />}
+                                    label="You"
+                                />
+                            </RadioGroup>
+                        </Box>
 
-                    {seller === Seller.others ? (
-                        <Select
-                            size="small"
-                            sx={{ width: 120, height: 40, ml: 5 }}
-                            displayEmpty
-                            value={10}
-                        >
-                            <MenuItem value={10}>Newest</MenuItem>
-                            <MenuItem value={20}>
-                                <span>Price</span>
-                                <span
-                                    style={{
-                                        fontSize: 25,
-                                        fontWeight: "bolder",
-                                        margin: 0,
-                                        padding: 0,
-                                    }}
-                                >
-                                    &uarr;
-                                </span>
-                            </MenuItem>
-                            <MenuItem value={20}>
-                                <span>Price</span>
-                                <span
-                                    style={{
-                                        fontSize: 25,
-                                        fontWeight: "bolder",
-                                        margin: 0,
-                                        padding: 0,
-                                    }}
-                                >
-                                    &darr;
-                                </span>
-                            </MenuItem>
-                        </Select>
-                    ) : (
-                        <Button
-                            size="medium"
-                            variant="outlined"
-                            color="success"
-                            onClick={handleWithdraw}
-                        >
-                            Withdraw
-                        </Button>
-                    )}
+                        {seller === Seller.others ? (
+                            <Select
+                                size="small"
+                                sx={{ width: 120, height: 40, ml: 5 }}
+                                displayEmpty
+                                value={10}
+                            >
+                                <MenuItem value={10}>Newest</MenuItem>
+                                <MenuItem value={20}>
+                                    <span>Price</span>
+                                    <span
+                                        style={{
+                                            fontSize: 25,
+                                            fontWeight: "bolder",
+                                            margin: 0,
+                                            padding: 0,
+                                        }}
+                                    >
+                                        &uarr;
+                                    </span>
+                                </MenuItem>
+                                <MenuItem value={20}>
+                                    <span>Price</span>
+                                    <span
+                                        style={{
+                                            fontSize: 25,
+                                            fontWeight: "bolder",
+                                            margin: 0,
+                                            padding: 0,
+                                        }}
+                                    >
+                                        &darr;
+                                    </span>
+                                </MenuItem>
+                            </Select>
+                        ) : (
+                            <Button
+                                size="medium"
+                                variant="outlined"
+                                color="success"
+                                onClick={handleWithdraw}
+                            >
+                                Withdraw
+                            </Button>
+                        )}
+                    </Box>
+                    <Grid container spacing={2}>
+                        {sales.map((item) => (
+                            <Grid item xs={3} key={item.id}>
+                                {seller === Seller.others ? (
+                                    <SellingBoxCard
+                                        data={item}
+                                        queryData={{ startPolling, stopPolling }}
+                                    ></SellingBoxCard>
+                                ) : (
+                                    <OwnedSaleCard
+                                        data={item}
+                                        queryData={{ startPolling, stopPolling }}
+                                    ></OwnedSaleCard>
+                                )}
+                            </Grid>
+                        ))}
+                    </Grid>
                 </Box>
-                <Grid container spacing={2}>
-                    {sales.map((item) => (
-                        <Grid item xs={3} key={item.id}>
-                            {seller === Seller.others ? (
-                                <SellingBoxCard
-                                    data={item}
-                                    queryData={{ startPolling, stopPolling }}
-                                ></SellingBoxCard>
-                            ) : (
-                                <OwnedSaleCard
-                                    data={item}
-                                    queryData={{ startPolling, stopPolling }}
-                                ></OwnedSaleCard>
-                            )}
-                        </Grid>
-                    ))}
-                </Grid>
-            </Box>
-            {isWithdrawing && (
-                <WithdrawModal
-                    isOpen={isWithdrawing}
-                    handleClose={() => setWithdrawing(false)}
-                    queryData={{ startPolling, stopPolling }}
-                />
-            )}
-        </Container>
+                {isWithdrawing && (
+                    <WithdrawModal
+                        isOpen={isWithdrawing}
+                        handleClose={() => setWithdrawing(false)}
+                        queryData={{ startPolling, stopPolling }}
+                    />
+                )}
+            </Container>
+        </>
     );
 };
 

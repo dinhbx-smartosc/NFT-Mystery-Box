@@ -10,12 +10,12 @@ import {
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import Counter from "../../components/Counter/Counter";
-import NftCarousel from "../../components/NftCarousel/NftCarousel";
 import { useQuery, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { utils as ethersUtils } from "ethers";
 import { BuyingBox } from "../../components/BuyingBox";
+import { NftCarousel } from "../../components/NftCarousel";
 
 const GET_SALE_DETAIL = gql`
     query GetSaleDetail($id: String) {

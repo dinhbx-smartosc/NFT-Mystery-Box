@@ -35,7 +35,7 @@ const OwnedBoxCard = ({ data }) => {
                     height="300"
                     image={metadata.image}
                     alt="green iguana"
-                    sx={{ objectFit: "contain" }}
+                    sx={{ objectFit: "cover" }}
                 />
                 <CardContent>
                     <Typography gutterBottom variant="h5" component="div" noWrap>

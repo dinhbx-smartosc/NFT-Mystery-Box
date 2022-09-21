@@ -1,28 +1,35 @@
-import { ethers } from "hardhat";
-import {
-    FIRST_BOX_ID,
-} from "../utils/constant";
+import hre from "hardhat";
 
 async function main() {
 
-    const MysteryBox = await ethers.getContractFactory("MysteryBox");
-    const MarketPlace = await ethers.getContractFactory(
-        "MysteryBoxMarketPlace"
-    );
-    const markeplace = MarketPlace.attach(
-        "0x0165878A594ca255338adfa4d48449f69242Eb8F"
-    );
-    const mysteryBox = MysteryBox.attach(
-        "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-    );
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 2,
+        amount: 2,
+        price: 1.2,
+    });
 
-    await mysteryBox.setApprovalForAll(markeplace.address, true)
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 3,
+        amount: 2,
+        price: 15,
+    });
 
-    console.log("Creating sale...");
-    await markeplace.createSale(FIRST_BOX_ID, 2, ethers.utils.parseEther("1.0"))
-    console.log("Sale created!");
-    
-    
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 4,
+        amount: 2,
+        price: 7.8,
+    });
+
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 5,
+        amount: 3,
+        price: 90,
+    });
+
 }
 
 // We recommend this pattern to be able to use async/await everywhere
