@@ -11,7 +11,8 @@
         "create-box": "hardhat run ./scripts/create-box.ts --network localhost",
         "transfer-box": "hardhat transfer-box owner user1 0 1",
         "open-box": "npx hardhat run scripts/open-box.ts --network localhost",
-        "create-sale": "hardhat create-sale --seller owner --box-id 0 --amount 1 --price 1.1"
+        "create-sale": "hardhat create-sale --seller owner --box-id 0 --amount 1 --price 1.1",
+        "setup": "hardhat run ./scripts/setup.ts"
     },
     "keywords": [],
     "author": "",

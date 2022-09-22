@@ -39,7 +39,6 @@ const GET_SALE_DETAIL = gql`
 `;
 
 const SellingBoxDetail = () => {
-
     const { id } = useParams();
     const [boxData, setBoxData] = useState(null);
     const [nfts, setNfts] = useState(null);
@@ -115,6 +114,7 @@ const SellingBoxDetail = () => {
                                 saleId={id}
                                 priceEach={data?.sale.priceEach}
                                 queryData={{ startPolling, stopPolling }}
+                                maxBuying={data?.sale.quantity}
                             />
                         </CardActions>
                     </Box>

@@ -4,38 +4,17 @@ import marketplaceAbi from "../../constant/abi/Marketplace.json";
 import { marketplaceAddress } from "../../constant/contractAddresses";
 import { useState } from "react";
 import { Counter } from "../Counter";
+import { BuyBoxModal } from "./BuyBoxModal";
 
-const BuyingBox = ({ saleId, priceEach, queryData }) => {
+const BuyingBox = ({ saleId, priceEach, queryData, maxBuying }) => {
     const [buyAmount, setBuyAmount] = useState("");
-    const { data: txData, error, fetch, isFetching, isLoading } = useWeb3ExecuteFunction();
+    const [isBuying, setBuying] = useState(false);
 
     const handleBuy = () => {
         if (buyAmount < 1) {
             return;
         }
-        queryData.startPolling(1000);
-        fetch({
-            params: {
-                abi: marketplaceAbi,
-                contractAddress: marketplaceAddress,
-                functionName: "buyBox",
-                params: {
-                    saleId: saleId,
-                    amount: buyAmount,
-                },
-                msgValue: buyAmount * priceEach,
-            },
-            onSuccess: (result) => {
-                result.wait().then(() => {
-                    setTimeout(() => {
-                        queryData.stopPolling();
-                    }, 3000);
-                });
-            },
-            onError: (error) => {
-                console.log(error);
-            },
-        });
+        setBuying(true);
     };
 
     return (
@@ -48,16 +27,24 @@ const BuyingBox = ({ saleId, priceEach, queryData }) => {
                 justifyContent: "space-between",
             }}
         >
-            <Counter number={buyAmount} setNumber={setBuyAmount} />
+            <Counter number={buyAmount} setNumber={setBuyAmount} maxNumber={maxBuying} />
             <Button
                 variant="contained"
                 size="large"
                 sx={{ flex: 1, marginLeft: 1 }}
-                disabled={isFetching}
                 onClick={handleBuy}
             >
                 Buy
             </Button>
+            {isBuying && (
+                <BuyBoxModal
+                    isOpen={isBuying}
+                    handleClose={() => setBuying(false)}
+                    queryData={queryData}
+                    saleInfo={{ saleId, buyAmount, priceEach }}
+                    maxBuying={maxBuying}
+                />
+            )}
         </Box>
     );
 };
