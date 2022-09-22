@@ -1,0 +1,231 @@
+import hre from "hardhat";
+import { ethers } from "hardhat";
+import {
+    BASE_FEE,
+    FUND_AMOUNT,
+    GAS_PRICE_LINK,
+    KEY_HASH,
+} from "../utils/constant";
+
+const deploy = async () => {
+    const MysteryBox = await ethers.getContractFactory("MysteryBox");
+    const VRFCoordinatorV2Mock = await ethers.getContractFactory(
+        "VRFCoordinatorV2Mock"
+    );
+    const SampleNFT = await ethers.getContractFactory("SampleNFT");
+    const MarketPlace = await ethers.getContractFactory(
+        "MysteryBoxMarketPlace"
+    );
+    const [owner] = await ethers.getSigners();
+
+    console.log("Deploying VRFCoordinatorMock...");
+
+    const vrfCoordinator = await VRFCoordinatorV2Mock.deploy(
+        BASE_FEE,
+        GAS_PRICE_LINK
+    );
+
+    await vrfCoordinator.deployed();
+    console.log("VRFCoordinatorMock deployed at:", vrfCoordinator.address);
+
+    // Create subscription for VRF
+    const createSubscriptionTx = await vrfCoordinator.createSubscription();
+    const createSubscriptionReceipt = await createSubscriptionTx.wait();
+    const subscriptionCreatedEvent = createSubscriptionReceipt.events![0];
+    const subscriptionId = subscriptionCreatedEvent.args!.subId;
+
+    // Fund subscription
+    await vrfCoordinator.fundSubscription(subscriptionId, FUND_AMOUNT);
+
+    console.log("Deploying MysteryBox...");
+
+    const mysteryBox = await MysteryBox.deploy(
+        vrfCoordinator.address,
+        subscriptionId,
+        KEY_HASH
+    );
+    await mysteryBox.deployed();
+    console.log("MysteryBox deployed at:", mysteryBox.address);
+
+    //Add mysteryBox contract to VRF subscription's consumers.
+    await vrfCoordinator.addConsumer(subscriptionId, mysteryBox.address);
+
+    console.log("Deploying Marketplace...");
+    const markeplace = await MarketPlace.deploy(mysteryBox.address);
+    await markeplace.deployed();
+    console.log("Marketplace deployed at:", markeplace.address);
+
+    // Deploy Cute Cats NFT
+    console.log("Deploying Cute Cats NFT...");
+    const cuteCatNft = await SampleNFT.deploy(
+        "Cute Cats",
+        "CAT",
+        "http://127.0.0.1:8080/ipfs/QmXD5xiB6XruxrDNgepwn5fw1VAWn1rWMuq6jpBnz5rcRU/"
+    );
+    await cuteCatNft.deployed();
+    console.log("Cute Cats NFT deployed at:", cuteCatNft.address);
+
+    // Deploy Golden Tiger NFT
+    console.log("Deploying Golden Tiger NFT...");
+    const goldenTigerNft = await SampleNFT.deploy(
+        "Golden Tiger",
+        "GTI",
+        "http://127.0.0.1:8080/ipfs/QmXEvzYsAXzqnQ7gX3SP4n6zYqH59ejXP7vusG5hbzUQEX/"
+    );
+    await goldenTigerNft.deployed();
+    console.log("Golden Tiger NFT deployed at:", goldenTigerNft.address);
+
+    //Deploy Think Ape NFT
+    console.log("Deploying Think Ape NFT...");
+    const thinkingApeNft = await SampleNFT.deploy(
+        "Thinking Ape",
+        "APE",
+        "http://127.0.0.1:8080/ipfs/QmdHSVWMnsthzWQHQ8vRs4Uu9VjyRBy74MFEyywenazwk1/"
+    );
+    await thinkingApeNft.deployed();
+    console.log("Think Ape NFT deployed at:", thinkingApeNft.address);
+
+    //Deploy Whale NFT
+    console.log("Deploying Whale NFT...");
+    const whaleNft = await SampleNFT.deploy(
+        "Whale",
+        "APE",
+        "http://127.0.0.1:8080/ipfs/QmcwcyfwJpzTW2DxjrhybeYEwXmV5WptPnFTHpMaT9zYEU/"
+    );
+    await whaleNft.deployed();
+    console.log("Whale NFT deployed at:", whaleNft.address);
+};
+
+const createBox = async () => {
+    await hre.run("create-box", {
+        contract: "cuteCat",
+        ids: [0, 1, 2, 3, 4, 5],
+    });
+
+    await hre.run("create-box", {
+        contract: "goldenTiger",
+        ids: [9, 8, 7, 6],
+    });
+
+    await hre.run("create-box", {
+        contract: "thinkingApe",
+        ids: [2, 4, 6, 8],
+    });
+
+    await hre.run("create-box", {
+        contract: "whale",
+        ids: [1, 5, 7, 9],
+    });
+
+    await hre.run("create-box", {
+        contract: "cuteCat",
+        ids: [6, 7, 8, 9],
+    });
+
+    await hre.run("create-box", {
+        contract: "goldenTiger",
+        ids: [1, 2, 3, 4],
+    });
+
+    await hre.run("create-box", {
+        contract: "thinkingApe",
+        ids: [1, 3, 5, 7],
+    });
+
+    await hre.run("create-box", {
+        contract: "whale",
+        ids: [0, 2, 3, 4, 6, 8],
+    });
+};
+
+const transferBox = async () => {
+    for (let i = 0; i < 8; i++) {
+        await hre.run("transfer-box", {
+            from: "owner",
+            to: "user1",
+            boxid: i,
+            amount: 2,
+        });
+    }
+};
+
+const createSale = async () => {
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 0,
+        amount: 3,
+        price: 1.2,
+    });
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 1,
+        amount: 2,
+        price: 145,
+    });
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 5,
+        amount: 2,
+        price: 11,
+    });
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 0,
+        amount: 1,
+        price: 99,
+    });
+    await hre.run("create-sale", {
+        seller: "owner",
+        boxId: 4,
+        amount: 2,
+        price: 1.88,
+    });
+    await hre.run("create-sale", {
+        seller: "user1",
+        boxId: 7,
+        amount: 2,
+        price: 278,
+    });
+    await hre.run("create-sale", {
+        seller: "user1",
+        boxId: 1,
+        amount: 1,
+        price: 101,
+    });
+    await hre.run("create-sale", {
+        seller: "user1",
+        boxId: 6,
+        amount: 1,
+        price: 1.9,
+    });
+    await hre.run("create-sale", {
+        seller: "user1",
+        boxId: 2,
+        amount: 2,
+        price: 0.1,
+    });
+    await hre.run("create-sale", {
+        seller: "user1",
+        boxId: 3,
+        amount: 2,
+        price: 0.11,
+    });
+    await hre.run("create-sale", {
+        seller: "user1",
+        boxId: 4,
+        amount: 2,
+        price: 55,
+    });
+};
+
+const main = async () => {
+    await deploy();
+    await createBox();
+    await transferBox();
+    await createSale();
+};
+
+main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+});

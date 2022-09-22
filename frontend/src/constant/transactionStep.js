@@ -5,7 +5,7 @@ export const TxStep = {
     },
     createTx: {
         index: 1,
-        name: "Create Transaction",
+        name: "Create Tx",
     },
     waitConfirmation: {
         index: 2,

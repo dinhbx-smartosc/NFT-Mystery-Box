@@ -12,12 +12,9 @@ import { useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useWeb3ExecuteFunction } from "react-moralis";
-import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
-import { mysteryBoxAddress } from "../../constant/contractAddresses";
 import { SellBoxModal } from "../../components/SellBoxModal";
-import { Counter } from "../../components/Counter";
 import { NftCarousel } from "../../components/NftCarousel";
+import { OpenBox } from "../../components/OpenBox/OpenBox";
 
 const GET_BOX_DETAIL = gql`
     query GetBoxDetail($id: String) {
@@ -46,18 +43,7 @@ const OwnedBoxDetail = () => {
     });
     const [boxData, setBoxData] = useState(null);
     const [nfts, setNfts] = useState(null);
-    const [openAmount, setOpenAmount] = useState(0);
     const [isSelling, setSelling] = useState(false);
-
-    const { fetch: fetchOpen, isFetching: isFetchingOpen } = useWeb3ExecuteFunction({
-        abi: mysteryBoxAbi,
-        contractAddress: mysteryBoxAddress,
-        functionName: "openBox",
-        params: {
-            boxId: data?.boxBalance.box.boxId,
-            amount: openAmount,
-        },
-    });
 
     useEffect(() => {
         const loadBoxData = async () => {
@@ -83,10 +69,6 @@ const OwnedBoxDetail = () => {
             setNfts(nftData);
         }
     }, [data]);
-
-    const handleOpen = () => {
-        fetchOpen();
-    };
 
     return (
         <Container>
@@ -124,24 +106,11 @@ const OwnedBoxDetail = () => {
                             </Typography>
                         </CardContent>
                         <CardActions sx={{ my: 5 }}>
-                            <Box
-                                sx={{
-                                    display: "flex",
-                                    alignItems: "end",
-                                    justifyContent: "space-between",
-                                }}
-                            >
-                                <Counter number={openAmount} setNumber={setOpenAmount} />
-                                <Button
-                                    variant="contained"
-                                    size="large"
-                                    sx={{ flex: 2, marginLeft: 1 }}
-                                    onClick={handleOpen}
-                                    disabled={isFetchingOpen}
-                                >
-                                    Open
-                                </Button>
-                            </Box>
+                            <OpenBox
+                                boxId={data?.boxBalance.box.boxId}
+                                queryData={{ startPolling, stopPolling }}
+                                maxOpen={data?.boxBalance.balance}
+                            />
                         </CardActions>
                         <CardActions sx={{ my: 5 }}>
                             <Button

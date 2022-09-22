@@ -36,8 +36,6 @@ const GET_APPROVAL = gql`
 `;
 
 export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }) => {
-    console.log("Selling Modal");
-
     const [sellingStep, setSellingStep] = useState(Steps.initializeSale);
     const [sellAmount, setSellAmount] = useState("");
     const [priceEach, setPriceEach] = useState("");
@@ -126,24 +124,6 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
         >
             <Box sx={{ ...style }}>
                 <Typography variant="h4">Sell Box</Typography>
-                <TextField
-                    label="Sell Amount"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 7 }}
-                    value={sellAmount}
-                    disabled={isLoading || sellingStep > Steps.createSale}
-                    onChange={(e) => setSellAmount(e.target.value)}
-                />
-                <TextField
-                    label="Price Each"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    value={priceEach}
-                    disabled={isLoading || sellingStep > Steps.createSale}
-                    onChange={(e) => setPriceEach(e.target.value)}
-                />
                 <Stepper activeStep={sellingStep} sx={{ mt: 5 }}>
                     <Step>
                         <StepLabel>Initialize Sale</StepLabel>
@@ -158,8 +138,26 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
                         <StepLabel>Completed</StepLabel>
                     </Step>
                 </Stepper>
+                <TextField
+                    label="Sell Amount"
+                    type="number"
+                    fullWidth
+                    sx={{ mt: 6 }}
+                    value={sellAmount}
+                    disabled={isLoading || sellingStep > Steps.createSale}
+                    onChange={(e) => setSellAmount(e.target.value)}
+                />
+                <TextField
+                    label="Price Each"
+                    type="number"
+                    fullWidth
+                    sx={{ mt: 2 }}
+                    value={priceEach}
+                    disabled={isLoading || sellingStep > Steps.createSale}
+                    onChange={(e) => setPriceEach(e.target.value)}
+                />
                 {sellingStep < Steps.completed ? (
-                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5 }}>
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 6 }}>
                         <Button
                             variant="contained"
                             size="large"
@@ -185,7 +183,7 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
                         variant="contained"
                         size="large"
                         fullWidth
-                        sx={{ mt: 5 }}
+                        sx={{ mt: 6 }}
                         onClick={handleClose}
                     >
                         Close

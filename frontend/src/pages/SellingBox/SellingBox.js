@@ -82,15 +82,42 @@ const SellingBox = () => {
 
     return (
         <>
+            <Box sx={{ position: "relative" }}>
+                <Box
+                    sx={{
+                        bgcolor: "#f2f2f2",
+                        opacity: 0.5,
+                        borderRadius: 1,
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: 1,
+                        height: 1,
+                        zIndex: "tooltip",
+                    }}
+                ></Box>
+                <Typography
+                    variant="h2"
+                    sx={{
+                        textAlign: "center",
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        zIndex: "tooltip",
+                        color: "#fff"
+                    }}
+                >
+                    SELLING BOX
+                </Typography>
+            </Box>                <Image height="30vh" src="https://www.cybavo.com/img/cms/nfts-banner.png" />
+
             <Container>
                 <Box
                     sx={{
                         py: 3,
                     }}
                 >
-                    <Typography variant="h4" sx={{ py: 3 }}>
-                        Selling Boxes
-                    </Typography>
                     <Box
                         sx={{
                             display: "flex",

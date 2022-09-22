@@ -53,7 +53,12 @@ const SellingBoxCard = ({ data, queryData }) => {
                 </CardContent>
             </CardActionArea>
             <CardActions sx={{ m: 1 }}>
-                <BuyingBox saleId={data.id} priceEach={data.priceEach} queryData={queryData} />
+                <BuyingBox
+                    saleId={data.id}
+                    priceEach={data.priceEach}
+                    queryData={queryData}
+                    maxBuying={data.quantity}
+                />
             </CardActions>
         </Card>
     );

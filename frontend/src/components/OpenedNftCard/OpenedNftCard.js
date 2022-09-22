@@ -45,11 +45,11 @@ export const OpenedNftCard = ({ nft }) => {
                         sx={{ objectFit: "contain" }}
                     />
                     <CardContent>
-                        <Typography gutterBottom variant="h6" component="div">
+                        <Typography gutterBottom variant="h6" sx={{fontSize: "1rem"}} component="div">
                             {`${nftData?.name}#${nft.tokenId}`}
                         </Typography>
                         <Box sx={{ display: "flex", maxWidth: 1 }}>
-                            <Typography variant="subtitle2">Address:&nbsp;</Typography>
+                            <Typography variant="subtitle2" sx={{fontSize: "0.8rem"}}>Address:&nbsp;</Typography>
                             <Typography variant="body2" noWrap color="text.secondary">
                                 {nft.address}
                             </Typography>

@@ -1,9 +1,9 @@
 import { Add, Remove } from "@mui/icons-material";
 import { Box, IconButton, TextField } from "@mui/material";
 
-export const Counter = ({ number, setNumber }) => {
+export const Counter = ({ number, setNumber, maxNumber }) => {
     const handleIncrement = () => {
-        if (number < 20) {
+        if (number < maxNumber) {
             setNumber((prev) => {
                 if (prev === "") return 1;
                 return Number.parseInt(prev) + 1;
@@ -19,7 +19,7 @@ export const Counter = ({ number, setNumber }) => {
 
     const handleInput = (e) => {
         const value = e.target.value;
-        if (value === "" || (0 <= parseInt(value) && parseInt(value) <= 20)) {
+        if (value === "" || (0 <= parseInt(value) && parseInt(value) <= maxNumber)) {
             setNumber(value);
         }
     };
