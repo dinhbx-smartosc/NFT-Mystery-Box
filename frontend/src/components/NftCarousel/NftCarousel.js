@@ -7,7 +7,7 @@ export const NftCarousel = ({ nfts }) => {
             <Typography variant="h5" sx={{ marginBottom: 1 }}>
                 NFT in Box
             </Typography>
-            <Stack direction="row" spacing={2} sx={{ overflowX: "scroll" }}>
+            <Stack className="nftStack" direction="row" spacing={2} sx={{ overflowX: "auto" }}>
                 {nfts.map((nft) => (
                     <NftCard key={`${nft.address}.${nft.tokenId}`} nft={nft} />
                 ))}

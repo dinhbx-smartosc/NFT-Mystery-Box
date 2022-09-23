@@ -43,9 +43,7 @@ export const OpenAccordion = ({ data }) => {
             </AccordionSummary>
             <AccordionDetails>
                 {data.completed ? (
-                    <OpenedNftCarousel
-                        nfts={[...data.openedNFT, ...data.openedNFT, ...data.openedNFT]}
-                    />
+                    <OpenedNftCarousel nfts={data.openedNFT} />
                 ) : (
                     <Typography variant="h4">Pending...</Typography>
                 )}

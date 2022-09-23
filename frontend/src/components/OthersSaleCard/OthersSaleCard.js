@@ -9,7 +9,7 @@ import axios from "axios";
 import { utils as ethersUtils } from "ethers";
 import { BuyingBox } from "../BuyingBox";
 
-const SellingBoxCard = ({ data, queryData }) => {
+export const OthersSaleCard = ({ data, queryData }) => {
     const navigate = useNavigate();
     const [boxData, setBoxData] = useState(null);
 
@@ -26,7 +26,7 @@ const SellingBoxCard = ({ data, queryData }) => {
     }, []);
 
     return (
-        <Card sx={{ maxWidth: 345 }}>
+        <Card sx={{ width: 270 }}>
             <CardActionArea
                 onClick={() => {
                     navigate(`/selling_detail/${data.id}`);
@@ -34,7 +34,7 @@ const SellingBoxCard = ({ data, queryData }) => {
             >
                 <CardMedia
                     component="img"
-                    height="300"
+                    height="270"
                     image={boxData?.image}
                     sx={{ objectFit: "cover" }}
                 />
@@ -50,6 +50,14 @@ const SellingBoxCard = ({ data, queryData }) => {
                             {`Amount: ${data.quantity}`}
                         </Typography>
                     </Box>
+                    <Box sx={{ display: "flex", flexGrow: 1 }}>
+                        <Typography variant="subtitle2" sx={{ minWidth: 60, fontWeight: 450 }}>
+                            Sold by:&nbsp;
+                        </Typography>
+                        <Typography variant="body2" noWrap color="text.secondary">
+                            {data.seller}
+                        </Typography>
+                    </Box>
                 </CardContent>
             </CardActionArea>
             <CardActions sx={{ m: 1 }}>
@@ -63,5 +71,3 @@ const SellingBoxCard = ({ data, queryData }) => {
         </Card>
     );
 };
-
-export default SellingBoxCard;

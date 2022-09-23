@@ -67,7 +67,7 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
     };
 
     return (
-        <Modal open={isOpen} onClose={!isFetching ? handleClose : null}>
+        <Modal open={isOpen} onClose={!isFetching ? handleClose : null} sx={{ zIndex: "tooltip" }}>
             <Box sx={{ ...modalBoxStyle }}>
                 <Typography variant="h4">Update Price</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>

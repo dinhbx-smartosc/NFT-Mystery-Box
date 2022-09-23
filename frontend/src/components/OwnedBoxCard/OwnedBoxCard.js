@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const OwnedBoxCard = ({ data }) => {
+export const OwnedBoxCard = ({ data }) => {
     const navigate = useNavigate();
     const [metadata, setMetadata] = useState(null);
 
@@ -24,7 +24,7 @@ const OwnedBoxCard = ({ data }) => {
     }, []);
 
     return metadata ? (
-        <Card sx={{ maxWidth: 345 }}>
+        <Card sx={{ maxWidth: 270 }}>
             <CardActionArea
                 onClick={() => {
                     navigate(`/owned_detail/${data.id}`);
@@ -32,7 +32,7 @@ const OwnedBoxCard = ({ data }) => {
             >
                 <CardMedia
                     component="img"
-                    height="300"
+                    height="270"
                     image={metadata.image}
                     alt="green iguana"
                     sx={{ objectFit: "cover" }}
@@ -51,5 +51,3 @@ const OwnedBoxCard = ({ data }) => {
         <div></div>
     );
 };
-
-export default OwnedBoxCard;

@@ -60,7 +60,7 @@ export const UpdatePriceModal = ({ isOpen, handleClose, saleId, queryData }) => 
     };
 
     return (
-        <Modal open={isOpen} onClose={handleClose}>
+        <Modal open={isOpen} onClose={handleClose} sx={{ zIndex: "tooltip" }}>
             <Box sx={{ ...modalBoxStyle }}>
                 <Typography variant="h4">Update Price</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>

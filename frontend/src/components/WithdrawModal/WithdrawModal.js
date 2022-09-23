@@ -28,7 +28,7 @@ const GET_BALANCE = gql`
     }
 `;
 
-export const WithdrawModal = ({ isOpen, handleClose, queryData }) => {
+export const WithdrawModal = ({ isOpen, handleClose }) => {
     const { account } = useMoralis();
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
     const { loading, error, data } = useQuery(GET_BALANCE, {
@@ -57,13 +57,9 @@ export const WithdrawModal = ({ isOpen, handleClose, queryData }) => {
                 functionName: "withdraw",
             },
             onSuccess: (result) => {
-                queryData.startPolling(1000);
                 setTxStep(TxStep.waitConfirmation.index);
                 result.wait().then(() => {
                     setTxStep(TxStep.complete.index + 1);
-                    setTimeout(() => {
-                        queryData.stopPolling();
-                    }, 3000);
                 });
             },
             onError: (error) => {
@@ -77,7 +73,7 @@ export const WithdrawModal = ({ isOpen, handleClose, queryData }) => {
     }
 
     return (
-        <Modal open={isOpen} onClose={handleClose}>
+        <Modal open={isOpen} onClose={handleClose} sx={{ zIndex: "tooltip" }}>
             <Box sx={{ ...modalBoxStyle }}>
                 <Typography variant="h4">Withdraw</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>

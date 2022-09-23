@@ -7,10 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { utils as ethersUtils } from "ethers";
-import { BuyingBox } from "../BuyingBox";
-import { minWidth } from "@mui/system";
 import { UpdatePriceModal } from "../UpdatePriceModal";
-import { CancelSaleModal } from "../CancelSaleModel";
+import { CancelSaleModal } from "../CancelSaleModal";
+import { UpdatePriceButton } from "../UpdatePriceButton";
+import { CancelSaleButton } from "../CancelSaleButton/CancelSaleButton";
 
 const OwnedSaleCard = ({ data, queryData }) => {
     const navigate = useNavigate();
@@ -31,7 +31,7 @@ const OwnedSaleCard = ({ data, queryData }) => {
     }, []);
 
     return (
-        <Card sx={{ maxWidth: 345 }}>
+        <Card sx={{ maxWidth: 270 }}>
             <CardActionArea
                 onClick={() => {
                     navigate(`/selling_detail/${data.id}`);
@@ -39,9 +39,8 @@ const OwnedSaleCard = ({ data, queryData }) => {
             >
                 <CardMedia
                     component="img"
-                    height="300"
+                    height="270"
                     image={boxData?.image}
-                    alt="green iguana"
                     sx={{ objectFit: "cover" }}
                 />
                 <CardContent>
@@ -67,40 +66,12 @@ const OwnedSaleCard = ({ data, queryData }) => {
                         alignItems: "center",
                     }}
                 >
-                    <Button
-                        variant="contained"
-                        size="large"
-                        sx={{mr: 1}}
-                        onClick={() => setUpdating(true)}
-                        fullWidth
-                    >
-                        Update
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        size="large"
-                        onClick={() => setCanceling(true)}
-                        fullWidth
-                    >
-                        Cancel
-                    </Button>
+                    <UpdatePriceButton saleId={data.id} queryData={queryData} />
+                    <CancelSaleButton
+                        queryData={queryData}
+                        saleInfo={{ saleId: data.id, amount: data.quantity }}
+                    />
                 </Box>
-                {isUpdating && (
-                    <UpdatePriceModal
-                        isOpen={isUpdating}
-                        handleClose={() => setUpdating(false)}
-                        saleId={data.id}
-                        queryData={queryData}
-                    />
-                )}
-                {isCanceling && (
-                    <CancelSaleModal
-                        isOpen={isCanceling}
-                        handleClose={() => setCanceling(false)}
-                        saleId={data.id}
-                        queryData={queryData}
-                    />
-                )}
             </CardActions>
         </Card>
     );

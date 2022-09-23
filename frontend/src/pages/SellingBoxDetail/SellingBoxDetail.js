@@ -16,6 +16,9 @@ import axios from "axios";
 import { utils as ethersUtils } from "ethers";
 import { BuyingBox } from "../../components/BuyingBox";
 import { NftCarousel } from "../../components/NftCarousel";
+import { useMoralis } from "react-moralis";
+import { UpdatePriceButton } from "../../components/UpdatePriceButton";
+import { CancelSaleButton } from "../../components/CancelSaleButton/CancelSaleButton";
 
 const GET_SALE_DETAIL = gql`
     query GetSaleDetail($id: String) {
@@ -40,6 +43,7 @@ const GET_SALE_DETAIL = gql`
 
 const SellingBoxDetail = () => {
     const { id } = useParams();
+    const { account } = useMoralis();
     const [boxData, setBoxData] = useState(null);
     const [nfts, setNfts] = useState(null);
     const { loading, error, data, startPolling, stopPolling } = useQuery(GET_SALE_DETAIL, {
@@ -71,6 +75,10 @@ const SellingBoxDetail = () => {
         }
     }, [data]);
 
+    if (loading || error || !data) {
+        return <></>;
+    }
+
     return (
         <Container>
             <Box
@@ -89,6 +97,9 @@ const SellingBoxDetail = () => {
                         sx={{
                             flex: 5,
                             px: 5,
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
                         }}
                     >
                         <CardContent>
@@ -109,13 +120,38 @@ const SellingBoxDetail = () => {
                                 {boxData?.description}
                             </Typography>
                         </CardContent>
-                        <CardActions sx={{ my: 5 }}>
-                            <BuyingBox
-                                saleId={id}
-                                priceEach={data?.sale.priceEach}
-                                queryData={{ startPolling, stopPolling }}
-                                maxBuying={data?.sale.quantity}
-                            />
+                        <CardActions
+                            sx={{
+                                mt: 5,
+                                mb: 2
+                            }}
+                        >
+                            {data.sale.seller === account.toLowerCase() ? (
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        flexGrow: 0.4,
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <UpdatePriceButton
+                                        saleId={id}
+                                        queryData={{ startPolling, stopPolling }}
+                                    />
+                                    <CancelSaleButton
+                                        queryData={{ startPolling, stopPolling }}
+                                        saleInfo={{ saleId: id, amount: data?.sale.quantity }}
+                                    />
+                                </Box>
+                            ) : (
+                                <BuyingBox
+                                    saleId={id}
+                                    priceEach={data?.sale.priceEach}
+                                    queryData={{ startPolling, stopPolling }}
+                                    maxBuying={data?.sale.quantity}
+                                />
+                            )}
                         </CardActions>
                     </Box>
                 </Card>

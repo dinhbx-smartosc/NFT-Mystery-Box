@@ -36,7 +36,7 @@ const NftCard = ({ nft }) => {
     });
 
     return (
-        <Box sx={{ minWidth: 200, maxWidth: 200, minHeight: 200, position: "relative" }}>
+        <Box sx={{ minWidth: 200, maxWidth: 200, minHeight: 200, position: "relative", mb: 1 }}>
             {nft.opened && (
                 <Box
                     sx={{

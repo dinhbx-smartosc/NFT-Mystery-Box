@@ -1,5 +1,4 @@
 import {
-    Grid,
     Box,
     Container,
     Typography,
@@ -9,31 +8,16 @@ import {
     Select,
     MenuItem,
     Button,
+    Paper,
 } from "@mui/material";
-import SellingBoxCard from "../../components/SellingBoxCard/SellingBoxCard";
-import { useQuery, gql } from "@apollo/client";
-import { useEffect, useState } from "react";
-import { useMoralis } from "react-moralis";
-import { OwnedSaleCard } from "../../components/OwedSaleCard";
 import { WithdrawModal } from "../../components/WithdrawModal";
-import { Image } from "mui-image";
-
-const GET_SELLING_BOXES = gql`
-    query GetSellingBoxes {
-        sales(where: { quantity_gt: "0" }) {
-            box {
-                id
-                boxId
-                tokenURI
-            }
-            id
-            priceEach
-            quantity
-            saleId
-            seller
-        }
-    }
-`;
+import { Banner } from "../../components/Banner";
+import { OwnedSale } from "../../components/OwnedSale/OwnedSale";
+import { OthersSale } from "../../components/OthersSale/OthersSale";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { SaleSortSelector } from "../../components/SaleSortSelector/SaleSortSelector";
+import { SortType } from "../../constant/sortType";
 
 const Seller = {
     others: "others",
@@ -41,40 +25,21 @@ const Seller = {
 };
 
 const SellingBox = () => {
-    const { account } = useMoralis();
-    const { loading, error, data, startPolling, stopPolling } = useQuery(GET_SELLING_BOXES);
-    const [sales, setSales] = useState([]);
-    const [seller, setSeller] = useState(Seller.others);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [seller, setSeller] = useState(() => {
+        const sellerParam = searchParams.getAll("seller");
+        if (!sellerParam.length || sellerParam[0] === Seller.others) {
+            return Seller.others;
+        } else if (sellerParam.length && sellerParam[0] === Seller.user) {
+            return Seller.user;
+        }
+    });
     const [isWithdrawing, setWithdrawing] = useState(false);
+    const [sortType, setSortType] = useState(SortType.newest);
 
     useEffect(() => {
-        if (typeof window.ethereum !== "undefined") {
-            window.ethereum.request({ method: "eth_accounts" }).then((accounts) => {
-                if (accounts.length) {
-                    if (data && data?.sales && account) {
-                        if (seller === Seller.others) {
-                            const othersSales = data.sales.filter(
-                                (sale) => sale.seller !== account.toLowerCase()
-                            );
-                            setSales(othersSales);
-                        } else if (seller === Seller.user) {
-                            const userSales = data.sales.filter(
-                                (sale) => sale.seller === account.toLowerCase()
-                            );
-                            setSales(userSales);
-                        }
-                    }
-                } else {
-                    console.log("called else");
-                    if (seller === Seller.others) {
-                        setSales(data.sales);
-                    } else if (seller === Seller.user) {
-                        setSales([]);
-                    }
-                }
-            });
-        }
-    }, [data, seller, account]);
+        setSearchParams({ seller: seller });
+    }, [seller]);
 
     const handleWithdraw = () => {
         setWithdrawing(true);
@@ -82,40 +47,15 @@ const SellingBox = () => {
 
     return (
         <>
-            <Box sx={{ position: "relative" }}>
-                <Box
-                    sx={{
-                        bgcolor: "#f2f2f2",
-                        opacity: 0.5,
-                        borderRadius: 1,
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        width: 1,
-                        height: 1,
-                        zIndex: "tooltip",
-                    }}
-                ></Box>
-                <Typography
-                    variant="h2"
-                    sx={{
-                        textAlign: "center",
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        zIndex: "tooltip",
-                        color: "#fff"
-                    }}
-                >
-                    SELLING BOX
-                </Typography>
-            </Box>                <Image height="30vh" src="https://www.cybavo.com/img/cms/nfts-banner.png" />
-
+            <Banner
+                image={"/images/banner1.jpg"}
+                content={"SELLING BOX"}
+            />
             <Container>
                 <Box
                     sx={{
                         py: 3,
+                        minHeight: "40vh",
                     }}
                 >
                     <Box
@@ -149,40 +89,7 @@ const SellingBox = () => {
                         </Box>
 
                         {seller === Seller.others ? (
-                            <Select
-                                size="small"
-                                sx={{ width: 120, height: 40, ml: 5 }}
-                                displayEmpty
-                                value={10}
-                            >
-                                <MenuItem value={10}>Newest</MenuItem>
-                                <MenuItem value={20}>
-                                    <span>Price</span>
-                                    <span
-                                        style={{
-                                            fontSize: 25,
-                                            fontWeight: "bolder",
-                                            margin: 0,
-                                            padding: 0,
-                                        }}
-                                    >
-                                        &uarr;
-                                    </span>
-                                </MenuItem>
-                                <MenuItem value={20}>
-                                    <span>Price</span>
-                                    <span
-                                        style={{
-                                            fontSize: 25,
-                                            fontWeight: "bolder",
-                                            margin: 0,
-                                            padding: 0,
-                                        }}
-                                    >
-                                        &darr;
-                                    </span>
-                                </MenuItem>
-                            </Select>
+                            <SaleSortSelector sortType={sortType} setSortType={setSortType} />
                         ) : (
                             <Button
                                 size="medium"
@@ -194,32 +101,22 @@ const SellingBox = () => {
                             </Button>
                         )}
                     </Box>
-                    <Grid container spacing={2}>
-                        {sales.map((item) => (
-                            <Grid item xs={3} key={item.id}>
-                                {seller === Seller.others ? (
-                                    <SellingBoxCard
-                                        data={item}
-                                        queryData={{ startPolling, stopPolling }}
-                                    ></SellingBoxCard>
-                                ) : (
-                                    <OwnedSaleCard
-                                        data={item}
-                                        queryData={{ startPolling, stopPolling }}
-                                    ></OwnedSaleCard>
-                                )}
-                            </Grid>
-                        ))}
-                    </Grid>
+                    {seller === Seller.others ? <OthersSale sortType={sortType} /> : <OwnedSale />}
                 </Box>
                 {isWithdrawing && (
                     <WithdrawModal
                         isOpen={isWithdrawing}
                         handleClose={() => setWithdrawing(false)}
-                        queryData={{ startPolling, stopPolling }}
                     />
                 )}
             </Container>
+            <Box
+                sx={{
+                    height: "30vh",
+                    backgroundColor: "#1976d2",
+                    mt: 10,
+                }}
+            ></Box>
         </>
     );
 };
