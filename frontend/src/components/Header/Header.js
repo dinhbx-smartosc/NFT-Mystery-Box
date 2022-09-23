@@ -78,7 +78,7 @@ const Header = () => {
                             color="inherit"
                             sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}
                         >
-                            Connected
+                            {account.substring(0, 5) + "..." + account.substring(account.length - 4)}
                         </Button>
                     ) : (
                         <Button

@@ -89,11 +89,92 @@ const deploy = async () => {
     console.log("Deploying Whale NFT...");
     const whaleNft = await SampleNFT.deploy(
         "Whale",
-        "APE",
+        "WHA",
         "http://127.0.0.1:8080/ipfs/QmcwcyfwJpzTW2DxjrhybeYEwXmV5WptPnFTHpMaT9zYEU/"
     );
     await whaleNft.deployed();
     console.log("Whale NFT deployed at:", whaleNft.address);
+
+    //Deploy Bit Bear
+    const bitBearNft = await SampleNFT.deploy(
+        "Bit Bear",
+        "BBE",
+        "http://127.0.0.1:8080/ipfs/QmeYkm8FHezUvbwmS2sEMEMhHKSLNMdDQy4MXyXpuHWjBm/"
+    );
+    await bitBearNft.deployed();
+    console.log("Bit Bear NFT deployed at:", bitBearNft.address);
+
+    //Deploy Bored Cat
+    const boredCatNft = await SampleNFT.deploy(
+        "Bored Cat",
+        "CAT",
+        "http://127.0.0.1:8080/ipfs/Qmf5RGfKoMGMG2ZAyETez3mhhwpYQi2ABD8kqFd2V4AgSh/"
+    );
+    await boredCatNft.deployed();
+    console.log("Bored Cat NFT deployed at:", boredCatNft.address);
+
+    //Deploy Crypto Fox
+    const cryptoFoxNft = await SampleNFT.deploy(
+        "Crypto Fox",
+        "FOX",
+        "http://127.0.0.1:8080/ipfs/QmSHxWAHAKLKx8773WSk3itcgDoTayEy8TNcJe7NCeX4Vk/"
+    );
+    await cryptoFoxNft.deployed();
+    console.log("Crypto Fox NFT deployed at:", cryptoFoxNft.address);
+
+    //Deploy Pancake Bunnies
+    const pancakeBunniesNft = await SampleNFT.deploy(
+        "Pancake Bunnies",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmYD7XzdLKCPSwzKJn7R1M2UgAQJmhKNmHc72anJfgWsPw/"
+    );
+    await pancakeBunniesNft.deployed();
+    console.log("Pancake Bunnies NFT deployed at:", pancakeBunniesNft.address);
+
+    //Deploy Business Whale
+    const businessWhale = await SampleNFT.deploy(
+        "Business Whale",
+        "BWE",
+        "http://127.0.0.1:8080/ipfs/Qmefx7RDQJnf4ryP8dRGPUvybbms9gtfRz9B6sc3U67igF/"
+    );
+    await businessWhale.deployed();
+    console.log("Business Whale NFT deployed at:", businessWhale.address);
+
+    //Deploy Holy Bear
+    const holyBearNft = await SampleNFT.deploy(
+        "Holy Bear",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmT2vBxWhjbYLJKUfHXqf7CXaS3Abcy1FKRFgcuLfk7MbP/"
+    );
+    await holyBearNft.deployed();
+    console.log("Holy Bear NFT deployed at:", holyBearNft.address);
+
+    //Deploy Meta Frog
+    const metaFrogNft = await SampleNFT.deploy(
+        "Meta Frog",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmaKLHVSe16ctZnwVjrd2Jv6AtS4W7R94mQzKTo6B65cvo/"
+    );
+    await metaFrogNft.deployed();
+    console.log("Meta Frog NFT deployed at:", metaFrogNft.address);
+
+    //Deploy Moose Typcoons
+    const mooseTypcoons = await SampleNFT.deploy(
+        "Moose Typcoons",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmV31wrVPnhYB7PKvS5xRvfte7Zoeau4i6VB42bYzJkPFe/"
+    );
+    await mooseTypcoons.deployed();
+    console.log("Moose Typcoons NFT deployed at:", mooseTypcoons.address);
+
+    //Deploy tonSummerNft
+    const tonSummerNft = await SampleNFT.deploy(
+        "Ton Summer",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmSq995HrEojjXho2aesUbi6JaPVTG7esqeUgVKabCevbD/"
+    );
+    await tonSummerNft.deployed();
+    console.log("Ton Summer NFT deployed at:", tonSummerNft.address);
 };
 
 const createBox = async () => {

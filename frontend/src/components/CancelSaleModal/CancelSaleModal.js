@@ -1,10 +1,9 @@
 import { Button, Modal, Step, StepLabel, Stepper, TextField, Typography, Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWeb3ExecuteFunction } from "react-moralis";
 import marketplaceAbi from "../../constant/abi/Marketplace.json";
 import { marketplaceAddress } from "../../constant/contractAddresses";
 import { TxStep } from "../../constant/transactionStep";
-import { utils as ethersUtils } from "ethers";
 
 const modalBoxStyle = {
     position: "absolute",
@@ -19,17 +18,22 @@ const modalBoxStyle = {
     py: 5,
 };
 
-export const CancelSaleModal = ({ isOpen, handleClose, saleId, queryData }) => {
+export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
     const [cancelAmount, setCancelAmount] = useState("");
-    const { fetch: fetchTx, isFetching, isLoading } = useWeb3ExecuteFunction();
+    const { fetch: fetchTx, isLoading } = useWeb3ExecuteFunction();
+
+    useEffect(() => {
+        if (cancelAmount !== "" && !isNaN(cancelAmount)) {
+            setTxStep(TxStep.createTx.index);
+        }
+    }, [cancelAmount]);
 
     const handleNewPrice = (e) => {
         const value = e.target.value;
-        if (value !== "" && !isNaN(value)) {
-            setTxStep(TxStep.createTx.index);
+        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= saleInfo.amount)) {
+            setCancelAmount(value);
         }
-        setCancelAmount(value);
     };
 
     const handleUpdate = () => {
@@ -39,7 +43,7 @@ export const CancelSaleModal = ({ isOpen, handleClose, saleId, queryData }) => {
                 contractAddress: marketplaceAddress,
                 functionName: "cancelSelling",
                 params: {
-                    saleId: saleId,
+                    saleId: saleInfo.saleId,
                     amount: cancelAmount,
                 },
             },
@@ -60,7 +64,7 @@ export const CancelSaleModal = ({ isOpen, handleClose, saleId, queryData }) => {
     };
 
     return (
-        <Modal open={isOpen} onClose={handleClose}>
+        <Modal open={isOpen} onClose={handleClose} sx={{ zIndex: "tooltip" }}>
             <Box sx={{ ...modalBoxStyle }}>
                 <Typography variant="h4">Cancel Selling</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>

@@ -1,7 +1,8 @@
 import { Grid, Box, Container, Typography } from "@mui/material";
-import OwnedBoxCard from "../../components/OwnedBoxCard/OwnedBoxCard";
 import { useQuery, gql } from "@apollo/client";
 import { useMoralis } from "react-moralis";
+import { OwnedBoxCard } from "../../components/OwnedBoxCard";
+import { Banner } from "../../components/Banner";
 
 const GET_OWED_BOXES = gql`
     query GetOwnedBoxes($account: String) {
@@ -18,37 +19,40 @@ const GET_OWED_BOXES = gql`
 const OwnedBox = () => {
     const { account } = useMoralis();
 
-    const { loading, error, data } = useQuery(GET_OWED_BOXES, { variables: { account }, fetchPolicy: "cache-and-network" });
+    const { loading, error, data } = useQuery(GET_OWED_BOXES, {
+        variables: { account },
+        fetchPolicy: "cache-and-network",
+    });
 
     return (
-        <Container>
-            <Box
-                sx={{
-                    py: 3,
-                }}
-            >
-                <Typography variant="h4" sx={{ py: 3 }}>
-                    Owned Boxes
-                </Typography>
-                <Grid container spacing={2}>
-                    {data ? (
-                        data.boxBalances.map((item) => (
-                            <Grid item xs={3} key={item.id}>
-                                <OwnedBoxCard
-                                    data={{
-                                        id: item.id,
-                                        balance: item.balance,
-                                        tokenURI: item.box.tokenURI,
-                                    }}
-                                />
-                            </Grid>
-                        ))
-                    ) : (
-                        <div></div>
-                    )}
-                </Grid>
-            </Box>
-        </Container>
+        <>
+            <Banner image={"/images/banner2.jpeg"} content={"OWNED BOX"} />
+            <Container>
+                <Box
+                    sx={{
+                        py: 3,
+                    }}
+                >
+                    <Grid container spacing={2}>
+                        {data ? (
+                            data.boxBalances.map((item) => (
+                                <Grid item xs={3} key={item.id}>
+                                    <OwnedBoxCard
+                                        data={{
+                                            id: item.id,
+                                            balance: item.balance,
+                                            tokenURI: item.box.tokenURI,
+                                        }}
+                                    />
+                                </Grid>
+                            ))
+                        ) : (
+                            <div></div>
+                        )}
+                    </Grid>
+                </Box>
+            </Container>
+        </>
     );
 };
 

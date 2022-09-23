@@ -88,11 +88,47 @@ async function main() {
     console.log("Deploying Whale NFT...");
     const whaleNft = await SampleNFT.deploy(
         "Whale",
-        "APE",
+        "WHA",
         "http://127.0.0.1:8080/ipfs/QmcwcyfwJpzTW2DxjrhybeYEwXmV5WptPnFTHpMaT9zYEU/"
     );
     await whaleNft.deployed();
     console.log("Whale NFT deployed at:", whaleNft.address);
+
+    //Deploy Bit Bear
+    const bitBearNft = await SampleNFT.deploy(
+        "Bit Bear",
+        "BBE",
+        "http://127.0.0.1:8080/ipfs/QmeYkm8FHezUvbwmS2sEMEMhHKSLNMdDQy4MXyXpuHWjBm/"
+    );
+    await bitBearNft.deployed();
+    console.log("Bit Bear NFT deployed at:", bitBearNft.address);
+
+    //Deploy Bored Cat
+    const boredCatNft = await SampleNFT.deploy(
+        "Bored Cat",
+        "CAT",
+        "http://127.0.0.1:8080/ipfs/Qmf5RGfKoMGMG2ZAyETez3mhhwpYQi2ABD8kqFd2V4AgSh/"
+    );
+    await boredCatNft.deployed();
+    console.log("Bored Cat NFT deployed at:", boredCatNft.address);
+
+    //Deploy Crypto Fox
+    const cryptoFoxNft = await SampleNFT.deploy(
+        "Crypto Fox",
+        "FOX",
+        "http://127.0.0.1:8080/ipfs/QmSHxWAHAKLKx8773WSk3itcgDoTayEy8TNcJe7NCeX4Vk/"
+    );
+    await cryptoFoxNft.deployed();
+    console.log("Crypto Fox NFT deployed at:", cryptoFoxNft.address);
+
+    //Deploy Pancake Bunnies
+    const pancakeBunniesNft = await SampleNFT.deploy(
+        "Pancake Bunnies",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmYD7XzdLKCPSwzKJn7R1M2UgAQJmhKNmHc72anJfgWsPw/"
+    );
+    await pancakeBunniesNft.deployed();
+    console.log("Pancake Bunnies NFT deployed at:", pancakeBunniesNft.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
