@@ -55,7 +55,7 @@ export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen
                     setTxStep(TxStep.complete.index + 1);
                     setTimeout(() => {
                         queryData.stopPolling();
-                    }, 3000);
+                    }, 5000);
                 });
             },
             onError: (error) => {

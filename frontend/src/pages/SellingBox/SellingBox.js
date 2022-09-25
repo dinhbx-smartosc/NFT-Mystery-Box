@@ -5,10 +5,7 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
-    Select,
-    MenuItem,
     Button,
-    Paper,
 } from "@mui/material";
 import { WithdrawModal } from "../../components/WithdrawModal";
 import { Banner } from "../../components/Banner";
@@ -18,6 +15,8 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { SaleSortSelector } from "../../components/SaleSortSelector/SaleSortSelector";
 import { SortType } from "../../constant/sortType";
+import { useSelector } from "react-redux";
+import { EmptyAlert } from "../../components/EmptyAlert";
 
 const Seller = {
     others: "others",
@@ -37,8 +36,15 @@ const SellingBox = () => {
     const [isWithdrawing, setWithdrawing] = useState(false);
     const [sortType, setSortType] = useState(SortType.newest);
 
+    const account = useSelector((state) => state.account.address);
+
     useEffect(() => {
-        setSearchParams({ seller: seller });
+        if (
+            seller === Seller.user ||
+            (seller === Seller.others && searchParams.getAll("seller").length)
+        ) {
+            setSearchParams({ seller: seller });
+        }
     }, [seller]);
 
     const handleWithdraw = () => {
@@ -47,15 +53,12 @@ const SellingBox = () => {
 
     return (
         <>
-            <Banner
-                image={"/images/banner1.jpg"}
-                content={"SELLING BOX"}
-            />
+            <Banner image={"/images/banner1.jpg"} content={"SELLING BOX"} />
             <Container>
                 <Box
                     sx={{
                         py: 3,
-                        minHeight: "40vh",
+                        minHeight: "50vh",
                     }}
                 >
                     <Box
@@ -91,17 +94,25 @@ const SellingBox = () => {
                         {seller === Seller.others ? (
                             <SaleSortSelector sortType={sortType} setSortType={setSortType} />
                         ) : (
-                            <Button
-                                size="medium"
-                                variant="outlined"
-                                color="success"
-                                onClick={handleWithdraw}
-                            >
-                                Withdraw
-                            </Button>
+                            account && (
+                                <Button
+                                    size="medium"
+                                    variant="outlined"
+                                    color="success"
+                                    onClick={handleWithdraw}
+                                >
+                                    Withdraw
+                                </Button>
+                            )
                         )}
                     </Box>
-                    {seller === Seller.others ? <OthersSale sortType={sortType} /> : <OwnedSale />}
+                    {seller === Seller.others ? (
+                        <OthersSale sortType={sortType} />
+                    ) : account ? (
+                        <OwnedSale />
+                    ) : (
+                        <EmptyAlert content="You have not connected wallet" />
+                    )}
                 </Box>
                 {isWithdrawing && (
                     <WithdrawModal
@@ -110,13 +121,6 @@ const SellingBox = () => {
                     />
                 )}
             </Container>
-            <Box
-                sx={{
-                    height: "30vh",
-                    backgroundColor: "#1976d2",
-                    mt: 10,
-                }}
-            ></Box>
         </>
     );
 };

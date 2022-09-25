@@ -19,6 +19,8 @@ import { NftCarousel } from "../../components/NftCarousel";
 import { useMoralis } from "react-moralis";
 import { UpdatePriceButton } from "../../components/UpdatePriceButton";
 import { CancelSaleButton } from "../../components/CancelSaleButton/CancelSaleButton";
+import { EthPriceLarge } from "../../components/EthPrice";
+import { TooltipAddress } from "../../components/TooltipAddress";
 
 const GET_SALE_DETAIL = gql`
     query GetSaleDetail($id: String) {
@@ -106,12 +108,19 @@ const SellingBoxDetail = () => {
                             <Typography gutterBottom variant="h4" component="div">
                                 {boxData?.name}
                             </Typography>
-                            <Typography gutterBottom variant="h5" component="div">
-                                {`${data ? ethersUtils.formatEther(data.sale.priceEach) : 0}ETH`}
-                            </Typography>
+                            <EthPriceLarge value={data.sale.priceEach} />
                             <Typography variant="subtitle2" color="text.secondary">
                                 {`Amount: ${data?.sale.quantity}`}
                             </Typography>
+                            <Box sx={{ display: "flex", flexGrow: 1 }}>
+                                <Typography
+                                    variant="subtitle2"
+                                    sx={{ minWidth: 60, fontWeight: 450 }}
+                                >
+                                    Sold by:&nbsp;
+                                </Typography>
+                                <TooltipAddress address={data.sale.seller} />
+                            </Box>
                             <Typography
                                 variant="body1"
                                 color="text.secondary"
@@ -123,7 +132,7 @@ const SellingBoxDetail = () => {
                         <CardActions
                             sx={{
                                 mt: 5,
-                                mb: 2
+                                mb: 2,
                             }}
                         >
                             {data.sale.seller === account.toLowerCase() ? (

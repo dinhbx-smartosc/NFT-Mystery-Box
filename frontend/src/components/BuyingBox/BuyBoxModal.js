@@ -69,7 +69,7 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
     return (
         <Modal open={isOpen} onClose={!isFetching ? handleClose : null} sx={{ zIndex: "tooltip" }}>
             <Box sx={{ ...modalBoxStyle }}>
-                <Typography variant="h4">Update Price</Typography>
+                <Typography variant="h4">Buy Box</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>
                     {Object.entries(TxStep).map(([_, value]) => (
                         <Step key={value.index}>

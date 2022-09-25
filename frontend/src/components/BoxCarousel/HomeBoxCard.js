@@ -1,24 +1,17 @@
-import Card from "@mui/material/Card";
-import CardContent from "@mui/material/CardContent";
-import CardMedia from "@mui/material/CardMedia";
-import Typography from "@mui/material/Typography";
-import { Box, CardActionArea, CardActions } from "@mui/material";
-import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { Box, Card, CardActionArea, CardContent, CardMedia, Typography } from "@mui/material";
 import axios from "axios";
-import { utils as ethersUtils } from "ethers";
-import { BuyingBox } from "../BuyingBox";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EthPrice } from "../EthPrice";
 import { TooltipAddress } from "../TooltipAddress";
 
-export const OthersSaleCard = ({ data, queryData }) => {
-    
+export const HomeBoxCard = ({ saleData }) => {
     const navigate = useNavigate();
     const [boxData, setBoxData] = useState(null);
 
     useEffect(() => {
         const loadData = async () => {
-            const res = await axios.get(data.box.tokenURI);
+            const res = await axios.get(saleData.box.tokenURI);
             if (res.data) {
                 setBoxData(res.data);
             }
@@ -29,10 +22,10 @@ export const OthersSaleCard = ({ data, queryData }) => {
     }, []);
 
     return (
-        <Card sx={{ width: 270 }}>
+        <Card sx={{ minWidth: 270, maxWidth: 270, borderRadius: 5 }}>
             <CardActionArea
                 onClick={() => {
-                    navigate(`/selling_detail/${data.id}`);
+                    navigate(`/selling_detail/${saleData.id}`);
                 }}
             >
                 <CardMedia
@@ -46,27 +39,19 @@ export const OthersSaleCard = ({ data, queryData }) => {
                         {boxData?.name}
                     </Typography>
                     <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                        <EthPrice value={data.priceEach} />
+                        <EthPrice value={saleData.priceEach} />
                         <Typography variant="body2" color="text.secondary">
-                            {`Amount: ${data.quantity}`}
+                            {`Amount: ${saleData.quantity}`}
                         </Typography>
                     </Box>
                     <Box sx={{ display: "flex", flexGrow: 1 }}>
                         <Typography variant="subtitle2" sx={{ minWidth: 60, fontWeight: 450 }}>
                             Sold by:&nbsp;
                         </Typography>
-                        <TooltipAddress address={data.seller} />
+                        <TooltipAddress address={saleData.seller} />
                     </Box>
                 </CardContent>
             </CardActionArea>
-            <CardActions sx={{ m: 1 }}>
-                <BuyingBox
-                    saleId={data.id}
-                    priceEach={data.priceEach}
-                    queryData={queryData}
-                    maxBuying={data.quantity}
-                />
-            </CardActions>
         </Card>
     );
 };

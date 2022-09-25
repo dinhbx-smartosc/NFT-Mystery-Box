@@ -11,6 +11,7 @@ import { UpdatePriceModal } from "../UpdatePriceModal";
 import { CancelSaleModal } from "../CancelSaleModal";
 import { UpdatePriceButton } from "../UpdatePriceButton";
 import { CancelSaleButton } from "../CancelSaleButton/CancelSaleButton";
+import { EthPrice } from "../EthPrice";
 
 const OwnedSaleCard = ({ data, queryData }) => {
     const navigate = useNavigate();
@@ -47,10 +48,8 @@ const OwnedSaleCard = ({ data, queryData }) => {
                     <Typography gutterBottom variant="h5" component="div" noWrap>
                         {boxData?.name}
                     </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                        <Typography gutterBottom variant="subtitle1" component="div">
-                            {`${ethersUtils.formatEther(data.priceEach)}ETH`}
-                        </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
+                        <EthPrice value={data.priceEach} />
                         <Typography variant="body2" color="text.secondary">
                             {`Amount: ${data.quantity}`}
                         </Typography>
