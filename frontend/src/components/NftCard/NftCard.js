@@ -7,6 +7,7 @@ import { useWeb3ExecuteFunction } from "react-moralis";
 import nftAbi from "../../constant/abi/NFT.json";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { TooltipAddress } from "../TooltipAddress";
 
 const NftCard = ({ nft }) => {
     const { fetch } = useWeb3ExecuteFunction({
@@ -79,9 +80,7 @@ const NftCard = ({ nft }) => {
                         </Typography>
                         <Box sx={{ display: "flex", maxWidth: 1 }}>
                             <Typography variant="subtitle2">Address:&nbsp;</Typography>
-                            <Typography variant="body2" noWrap color="text.secondary">
-                                {nft.address}
-                            </Typography>
+                            <TooltipAddress address={nft.address} />
                         </Box>
                     </CardContent>
                 </CardActionArea>

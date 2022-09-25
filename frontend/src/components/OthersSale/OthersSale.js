@@ -2,7 +2,6 @@
 import { gql, useLazyQuery, useQuery } from "@apollo/client";
 import { Grid } from "@mui/material";
 import { useEffect, useState } from "react";
-import { useMoralis } from "react-moralis";
 import { useSelector } from "react-redux";
 import { SortType } from "../../constant/sortType";
 import { OthersSaleCard } from "../OthersSaleCard";
@@ -26,7 +25,6 @@ const GET_OTHER_SALES = gql`
 `;
 
 export const OthersSale = () => {
-    const { account } = useMoralis();
     const [
         getOthersSales,
         {
@@ -38,17 +36,15 @@ export const OthersSale = () => {
         },
     ] = useLazyQuery(GET_OTHER_SALES);
     const [sortedSales, setSortedSales] = useState(null);
-
     const sortType = useSelector((state) => state.sortType.saleSortType);
+    const account = useSelector((state) => state.account.address);
 
     useEffect(() => {
-        if (account) {
-            getOthersSales({
-                variables: {
-                    seller: account.toLowerCase(),
-                },
-            });
-        }
+        getOthersSales({
+            variables: {
+                seller: account ? account.toLowerCase() : "",
+            },
+        });
     }, [account]);
 
     useEffect(() => {
@@ -71,7 +67,7 @@ export const OthersSale = () => {
                 setSortedSales(sortedData);
             }
         }
-    }, [sortType]);
+    }, [salesData, sortType]);
 
     if (loadingSales || loadSalesError || !salesData) return <></>;
 

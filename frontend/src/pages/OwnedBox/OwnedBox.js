@@ -3,6 +3,9 @@ import { useQuery, gql } from "@apollo/client";
 import { useMoralis } from "react-moralis";
 import { OwnedBoxCard } from "../../components/OwnedBoxCard";
 import { Banner } from "../../components/Banner";
+import { Footer } from "../../components/Footer";
+import { useSelector } from "react-redux";
+import { EmptyAlert } from "../../components/EmptyAlert";
 
 const GET_OWED_BOXES = gql`
     query GetOwnedBoxes($account: String) {
@@ -17,8 +20,7 @@ const GET_OWED_BOXES = gql`
 `;
 
 const OwnedBox = () => {
-    const { account } = useMoralis();
-
+    const account = useSelector((state) => state.account.address);
     const { loading, error, data } = useQuery(GET_OWED_BOXES, {
         variables: { account },
         fetchPolicy: "cache-and-network",
@@ -31,25 +33,27 @@ const OwnedBox = () => {
                 <Box
                     sx={{
                         py: 3,
+                        minHeight: "50vh",
                     }}
                 >
-                    <Grid container spacing={2}>
-                        {data ? (
-                            data.boxBalances.map((item) => (
-                                <Grid item xs={3} key={item.id}>
-                                    <OwnedBoxCard
-                                        data={{
-                                            id: item.id,
-                                            balance: item.balance,
-                                            tokenURI: item.box.tokenURI,
-                                        }}
-                                    />
-                                </Grid>
-                            ))
-                        ) : (
-                            <div></div>
-                        )}
-                    </Grid>
+                    {account ? (
+                        <Grid container spacing={2}>
+                            {data &&
+                                data.boxBalances.map((item) => (
+                                    <Grid item xs={3} key={item.id}>
+                                        <OwnedBoxCard
+                                            data={{
+                                                id: item.id,
+                                                balance: item.balance,
+                                                tokenURI: item.box.tokenURI,
+                                            }}
+                                        />
+                                    </Grid>
+                                ))}
+                        </Grid>
+                    ) : (
+                        <EmptyAlert content={"You have not connected wallet"} />
+                    )}
                 </Box>
             </Container>
         </>

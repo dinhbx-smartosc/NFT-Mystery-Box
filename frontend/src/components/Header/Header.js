@@ -6,11 +6,15 @@ import Typography from "@mui/material/Typography";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
+import { useDispatch } from "react-redux";
+import { setAccount } from "../../redux/slices/accountSlice";
 
-const Header = () => {
+export const Header = () => {
     const navigate = useNavigate();
     const [hasMetamask, setHasMetamask] = useState(false);
     const { enableWeb3, isWeb3Enabled, account } = useMoralis();
+    const dispatch = useDispatch();
+
     useEffect(() => {
         if (typeof window.ethereum !== "undefined") {
             setHasMetamask(true);
@@ -22,10 +26,19 @@ const Header = () => {
         }
     }, []);
 
+    useEffect(() => {
+        dispatch(setAccount(account));
+    }, [account]);
+
     return (
         <AppBar position="static">
             <Toolbar>
-                <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Box
+                    sx={{ display: "flex", alignItems: "center", cursor: "pointer" }}
+                    onClick={() => {
+                        navigate("/");
+                    }}
+                >
                     <img src="/sumup_logo_v3.png" style={{ height: "50px" }} />
                     <Typography
                         variant="h6"
@@ -49,7 +62,7 @@ const Header = () => {
                     <Button
                         sx={{ my: 2, color: "white", display: "block" }}
                         onClick={() => {
-                            navigate("/");
+                            navigate("/selling");
                         }}
                     >
                         Selling
@@ -78,7 +91,9 @@ const Header = () => {
                             color="inherit"
                             sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}
                         >
-                            {account.substring(0, 5) + "..." + account.substring(account.length - 4)}
+                            {account.substring(0, 5) +
+                                "..." +
+                                account.substring(account.length - 4)}
                         </Button>
                     ) : (
                         <Button
@@ -100,5 +115,3 @@ const Header = () => {
         </AppBar>
     );
 };
-
-export default Header;
