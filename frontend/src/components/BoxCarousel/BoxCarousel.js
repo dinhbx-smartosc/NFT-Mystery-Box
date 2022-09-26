@@ -8,7 +8,12 @@ import { HomeBoxCard } from "./HomeBoxCard";
 
 const GET_SALES = gql`
     query GetSales($seller: String) {
-        sales(orderBy: id, orderDirection: desc, where: { quantity_gt: "0", seller_not: $seller }) {
+        sales(
+            orderBy: id
+            orderDirection: desc
+            first: 10
+            where: { quantity_gt: "0", seller_not: $seller }
+        ) {
             box {
                 id
                 boxId

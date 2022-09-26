@@ -27,6 +27,7 @@ function App() {
                                 <Route path="selling_detail/:id" element={<SellingBoxDetail />} />
                                 <Route path="owned_detail/:id" element={<OwnedBoxDetail />} />
                                 <Route path="history" element={<History />} />
+                                <Route path="create_box" element={<CreateBox />} />
                             </Route>
                         </Routes>
                         <Footer />

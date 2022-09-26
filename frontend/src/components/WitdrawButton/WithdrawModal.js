@@ -6,19 +6,7 @@ import { marketplaceAddress } from "../../constant/contractAddresses";
 import { TxStep } from "../../constant/transactionStep";
 import { useQuery, gql } from "@apollo/client";
 import { EthPriceLarge } from "../EthPrice";
-
-const modalBoxStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 0.3,
-    bgcolor: "background.paper",
-    borderRadius: 2,
-    boxShadow: 24,
-    px: 3,
-    py: 5,
-};
+import { modalBoxStyle } from "../../constant/styles";
 
 const GET_BALANCE = gql`
     query GetBalance($account: String) {

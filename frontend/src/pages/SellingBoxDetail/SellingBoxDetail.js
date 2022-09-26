@@ -9,7 +9,6 @@ import {
     Button,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
-import Counter from "../../components/Counter/Counter";
 import { useQuery, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
@@ -135,7 +134,7 @@ const SellingBoxDetail = () => {
                                 mb: 2,
                             }}
                         >
-                            {data.sale.seller === account.toLowerCase() ? (
+                            {data.sale.seller === account?.toLowerCase() ? (
                                 <Box
                                     sx={{
                                         display: "flex",
