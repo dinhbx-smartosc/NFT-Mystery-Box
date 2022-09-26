@@ -17,6 +17,7 @@ import { SaleSortSelector } from "../../components/SaleSortSelector/SaleSortSele
 import { SortType } from "../../constant/sortType";
 import { useSelector } from "react-redux";
 import { EmptyAlert } from "../../components/EmptyAlert";
+import { WithdrawButton } from "../../components/WitdrawButton/WithdrawButton";
 
 const Seller = {
     others: "others",
@@ -95,14 +96,15 @@ const SellingBox = () => {
                             <SaleSortSelector sortType={sortType} setSortType={setSortType} />
                         ) : (
                             account && (
-                                <Button
-                                    size="medium"
-                                    variant="outlined"
-                                    color="success"
-                                    onClick={handleWithdraw}
-                                >
-                                    Withdraw
-                                </Button>
+                                // <Button
+                                //     size="medium"
+                                //     variant="outlined"
+                                //     color="success"
+                                //     onClick={handleWithdraw}
+                                // >
+                                //     Withdraw
+                                // </Button>
+                                <WithdrawButton />
                             )
                         )}
                     </Box>
@@ -114,12 +116,12 @@ const SellingBox = () => {
                         <EmptyAlert content="You have not connected wallet" />
                     )}
                 </Box>
-                {isWithdrawing && (
+                {/* {isWithdrawing && (
                     <WithdrawModal
                         isOpen={isWithdrawing}
                         handleClose={() => setWithdrawing(false)}
                     />
-                )}
+                )} */}
             </Container>
         </>
     );

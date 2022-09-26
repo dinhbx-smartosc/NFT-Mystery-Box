@@ -8,12 +8,15 @@ import { useEffect, useState } from "react";
 import { useMoralis } from "react-moralis";
 import { useDispatch } from "react-redux";
 import { setAccount } from "../../redux/slices/accountSlice";
+import { ethers } from "ethers";
+import { mysteryBoxAddress } from "../../constant/contractAddresses";
 
 export const Header = () => {
     const navigate = useNavigate();
     const [hasMetamask, setHasMetamask] = useState(false);
-    const { enableWeb3, isWeb3Enabled, account } = useMoralis();
+    const { enableWeb3, isWeb3Enabled, account, deactivateWeb3 } = useMoralis();
     const dispatch = useDispatch();
+    const [owner, setOwner] = useState(null);
 
     useEffect(() => {
         if (typeof window.ethereum !== "undefined") {
@@ -28,6 +31,21 @@ export const Header = () => {
 
     useEffect(() => {
         dispatch(setAccount(account));
+        const getMetadata = async () => {
+            if (typeof window.ethereum !== "undefined") {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const mysteryBoxContract = new ethers.Contract(
+                    mysteryBoxAddress,
+                    ["function owner() view returns (address)"],
+                    provider
+                );
+                const data = await mysteryBoxContract.owner();
+                if (data) {
+                    setOwner(data.toLowerCase());
+                }
+            }
+        };
+        getMetadata();
     }, [account]);
 
     return (
@@ -83,13 +101,26 @@ export const Header = () => {
                     >
                         History
                     </Button>
+                    {account && owner && account.toLowerCase() === owner.toLowerCase() && (
+                        <Button
+                            sx={{ my: 2, color: "white", display: "block" }}
+                            onClick={() => {
+                                navigate("/create_box");
+                            }}
+                        >
+                            Create Box
+                        </Button>
+                    )}
                 </Box>
                 {hasMetamask ? (
-                    isWeb3Enabled ? (
+                    isWeb3Enabled && account ? (
                         <Button
                             variant="contained"
                             color="inherit"
                             sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}
+                            onClick={() => {
+                                deactivateWeb3();
+                            }}
                         >
                             {account.substring(0, 5) +
                                 "..." +
@@ -102,7 +133,6 @@ export const Header = () => {
                             sx={{ backgroundColor: "#ffffff", color: "#1976d2" }}
                             onClick={() => {
                                 enableWeb3();
-                                // window.localStorage.setItem("enabled", "true");
                             }}
                         >
                             Connect

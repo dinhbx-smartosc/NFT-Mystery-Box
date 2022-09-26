@@ -4,37 +4,31 @@ import CardMedia from "@mui/material/CardMedia";
 import Typography from "@mui/material/Typography";
 import { Box, CardActionArea } from "@mui/material";
 import { useWeb3ExecuteFunction } from "react-moralis";
-import nftAbi from "../../constant/abi/NFT.json";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { TooltipAddress } from "../TooltipAddress";
+import { ethers } from "ethers";
+
+const nftAbi = ["function tokenURI(uint256) view returns (string)"];
 
 const NftCard = ({ nft }) => {
-    const { fetch } = useWeb3ExecuteFunction({
-        abi: nftAbi,
-        contractAddress: nft.address,
-        functionName: "tokenURI",
-        params: {
-            tokenId: nft.tokenId,
-        },
-    });
+    
     const [nftData, setNftData] = useState(null);
 
     useEffect(() => {
-        fetch({
-            onSuccess: (data) => {
-                const getNftData = async () => {
-                    const res = await axios.get(data);
-                    if (res.data) {
-                        setNftData(res.data);
-                    }
-                };
-                if (data && !nftData) {
-                    getNftData();
+        const getMetadata = async () => {
+            if (typeof window.ethereum !== "undefined") {
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const nftContract = new ethers.Contract(nft.address, nftAbi, provider);
+                const data = await nftContract.tokenURI(nft.tokenId);
+                const res = await axios.get(data);
+                if (res.data) {
+                    setNftData(res.data);
                 }
-            },
-        });
-    });
+            }
+        };
+        getMetadata();
+    }, []);
 
     return (
         <Box sx={{ minWidth: 200, maxWidth: 200, minHeight: 200, position: "relative", mb: 1 }}>
