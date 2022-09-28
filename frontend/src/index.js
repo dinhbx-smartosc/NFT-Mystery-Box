@@ -3,7 +3,9 @@ import ReactDOM from "react-dom/client";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { ApolloClient, InMemoryCache, ApolloProvider, gql } from "@apollo/client";
+import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
+import { MoralisProvider } from "react-moralis";
+import { GlobalStateProvider } from "./redux/store";
 
 const client = new ApolloClient({
     uri: "http://127.0.0.1:8000/subgraphs/name/dinhbx-smartosc/backend_the_graph",
@@ -18,9 +20,13 @@ const client = new ApolloClient({
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-    <ApolloProvider client={client}>
-        <App />
-    </ApolloProvider>
+    <MoralisProvider initializeOnMount={false}>
+        <GlobalStateProvider>
+            <ApolloProvider client={client}>
+                <App />
+            </ApolloProvider>
+        </GlobalStateProvider>
+    </MoralisProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

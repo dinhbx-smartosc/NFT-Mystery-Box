@@ -19,7 +19,7 @@ const GET_OWED_BOXES = gql`
     }
 `;
 
-const OwnedBox = () => {
+export const OwnedBox = () => {
     const account = useSelector((state) => state.account.address);
     const { loading, error, data } = useQuery(GET_OWED_BOXES, {
         variables: { account },
@@ -59,5 +59,3 @@ const OwnedBox = () => {
         </>
     );
 };
-
-export default OwnedBox;

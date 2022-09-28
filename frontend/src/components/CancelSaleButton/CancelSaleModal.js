@@ -4,24 +4,15 @@ import { useWeb3ExecuteFunction } from "react-moralis";
 import marketplaceAbi from "../../constant/abi/Marketplace.json";
 import { marketplaceAddress } from "../../constant/contractAddresses";
 import { TxStep } from "../../constant/transactionStep";
-
-const modalBoxStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 0.3,
-    bgcolor: "background.paper",
-    borderRadius: 2,
-    boxShadow: 24,
-    px: 3,
-    py: 5,
-};
+import { modalBoxStyle } from "../../constant/styles";
+import { useDispatch } from "react-redux";
+import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
 
 export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
     const [cancelAmount, setCancelAmount] = useState("");
-    const { fetch: fetchTx, isLoading } = useWeb3ExecuteFunction();
+    const { fetch: fetchTx, isLoading, data: txData } = useWeb3ExecuteFunction();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         if (cancelAmount !== "" && !isNaN(cancelAmount)) {
@@ -51,6 +42,7 @@ export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) =>
                 queryData.startPolling(1000);
                 setTxStep(TxStep.waitConfirmation.index);
                 result.wait().then(() => {
+                    dispatch(emitSuccess({ content: "Transaction completed!" }));
                     setTxStep(TxStep.complete.index + 1);
                     setTimeout(() => {
                         queryData.stopPolling();
@@ -58,6 +50,7 @@ export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) =>
                 });
             },
             onError: (error) => {
+                dispatch(emitError({ content: "Transaction failed!" }));
                 console.log(error);
             },
         });
@@ -92,11 +85,17 @@ export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) =>
                                 fullWidth
                                 sx={{ mr: 2 }}
                                 onClick={handleUpdate}
-                                disabled={isLoading}
+                                disabled={isLoading || !!txData}
                             >
                                 Confirm
                             </Button>
-                            <Button variant="outlined" size="large" fullWidth onClick={handleClose}>
+                            <Button
+                                variant="outlined"
+                                size="large"
+                                fullWidth
+                                onClick={handleClose}
+                                disabled={!!txData}
+                            >
                                 Cancel
                             </Button>
                         </>

@@ -6,13 +6,11 @@ import {
     CardMedia,
     CardContent,
     CardActions,
-    Button,
 } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useQuery, gql } from "@apollo/client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { utils as ethersUtils } from "ethers";
 import { BuyingBox } from "../../components/BuyingBox";
 import { NftCarousel } from "../../components/NftCarousel";
 import { useMoralis } from "react-moralis";
@@ -42,7 +40,7 @@ const GET_SALE_DETAIL = gql`
     }
 `;
 
-const SellingBoxDetail = () => {
+export const SellingBoxDetail = () => {
     const { id } = useParams();
     const { account } = useMoralis();
     const [boxData, setBoxData] = useState(null);
@@ -92,7 +90,6 @@ const SellingBoxDetail = () => {
                         sx={{ flex: 5, maxWidth: "50%" }}
                         component="img"
                         image={boxData?.image}
-                        alt="green iguana"
                     />
                     <Box
                         sx={{
@@ -168,6 +165,3 @@ const SellingBoxDetail = () => {
         </Container>
     );
 };
-
-export default SellingBoxDetail;
-export { SellingBoxDetail as BoxDetails };

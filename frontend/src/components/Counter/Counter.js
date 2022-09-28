@@ -33,7 +33,11 @@ export const Counter = ({ number, setNumber, maxNumber }) => {
                 size="small"
                 type="number"
                 placeholder="0"
-                inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
+                inputProps={{
+                    inputMode: "numeric",
+                    pattern: "[0-9]*",
+                    style: { textAlign: "center" },
+                }}
                 sx={{ maxWidth: 50, minWidth: 50 }}
                 value={number}
                 onChange={handleInput}

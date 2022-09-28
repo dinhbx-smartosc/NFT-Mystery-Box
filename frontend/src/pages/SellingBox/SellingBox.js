@@ -5,9 +5,7 @@ import {
     RadioGroup,
     FormControlLabel,
     Radio,
-    Button,
 } from "@mui/material";
-import { WithdrawModal } from "../../components/WithdrawModal";
 import { Banner } from "../../components/Banner";
 import { OwnedSale } from "../../components/OwnedSale/OwnedSale";
 import { OthersSale } from "../../components/OthersSale/OthersSale";
@@ -24,7 +22,8 @@ const Seller = {
     user: "user",
 };
 
-const SellingBox = () => {
+export const SellingBox = () => {
+    
     const [searchParams, setSearchParams] = useSearchParams();
     const [seller, setSeller] = useState(() => {
         const sellerParam = searchParams.getAll("seller");
@@ -34,7 +33,6 @@ const SellingBox = () => {
             return Seller.user;
         }
     });
-    const [isWithdrawing, setWithdrawing] = useState(false);
     const [sortType, setSortType] = useState(SortType.newest);
 
     const account = useSelector((state) => state.account.address);
@@ -47,10 +45,6 @@ const SellingBox = () => {
             setSearchParams({ seller: seller });
         }
     }, [seller]);
-
-    const handleWithdraw = () => {
-        setWithdrawing(true);
-    };
 
     return (
         <>
@@ -95,15 +89,7 @@ const SellingBox = () => {
                         {seller === Seller.others ? (
                             <SaleSortSelector sortType={sortType} setSortType={setSortType} />
                         ) : (
-                            account && (
-                                // <Button
-                                //     size="medium"
-                                //     variant="outlined"
-                                //     color="success"
-                                //     onClick={handleWithdraw}
-                                // >
-                                //     Withdraw
-                                // </Button>
+                            !!account && (
                                 <WithdrawButton />
                             )
                         )}
@@ -126,6 +112,3 @@ const SellingBox = () => {
         </>
     );
 };
-
-export default SellingBox;
-export { SellingBox };

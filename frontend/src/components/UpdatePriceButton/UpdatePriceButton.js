@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import { useState } from "react";
-import { UpdatePriceModal } from "../UpdatePriceModal";
+import { UpdatePriceModal } from "./UpdatePriceModal";
 
 export const UpdatePriceButton = ({ saleId, queryData }) => {
     const [isUpdating, setUpdating] = useState(false);
