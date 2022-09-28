@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Counter } from "../Counter";
 import { OpenBoxModal } from "./OpenBoxModal";
 
-export const OpenBox = ({ boxId, queryData, maxOpen }) => {
+export const OpenBoxButton = ({ boxId, queryData, maxOpen }) => {
     const [openAmount, setOpenAmount] = useState("");
     const [isOpening, setOpening] = useState(false);
 

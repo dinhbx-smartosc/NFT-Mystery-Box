@@ -66,7 +66,7 @@ export const BoxCarousel = () => {
                 sx={{ overflowX: "auto", py: 1, mt: 2 }}
             >
                 {salesData.sales.map((item) => (
-                    <HomeBoxCard id={item.id} saleData={item} />
+                    <HomeBoxCard key={item.id} saleData={item} />
                 ))}
             </Stack>
         </Box>

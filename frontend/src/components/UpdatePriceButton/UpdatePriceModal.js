@@ -1,73 +1,61 @@
 import { Button, Modal, Step, StepLabel, Stepper, TextField, Typography, Box } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useWeb3ExecuteFunction } from "react-moralis";
+import marketplaceAbi from "../../constant/abi/Marketplace.json";
+import { marketplaceAddress } from "../../constant/contractAddresses";
 import { TxStep } from "../../constant/transactionStep";
-import { LoadingButton } from "@mui/lab";
-import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
-import { mysteryBoxAddress } from "../../constant/contractAddresses";
+import { utils as ethersUtils } from "ethers";
+import { modalBoxStyle } from "../../constant/styles";
+import { useDispatch } from "react-redux";
+import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
 
-const modalBoxStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 0.3,
-    bgcolor: "background.paper",
-    borderRadius: 2,
-    boxShadow: 24,
-    px: 3,
-    py: 5,
-};
-
-export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen }) => {
+export const UpdatePriceModal = ({ isOpen, handleClose, saleId, queryData }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
-    const [openAmount, setOpenAmount] = useState(openInfo.openAmount);
-    const { fetch: fetchTx, isFetching, isLoading } = useWeb3ExecuteFunction();
+    const [newPrice, setNewPrice] = useState("");
+    const { fetch: fetchTx, isLoading, data: txData } = useWeb3ExecuteFunction();
+    const dispatch = useDispatch();
 
-    useEffect(() => {
-        if (openAmount !== "" && !isNaN(openAmount)) {
+    const handleNewPrice = (e) => {
+        const value = e.target.value;
+        if (value !== "" && !isNaN(value)) {
             setTxStep(TxStep.createTx.index);
         }
-    }, [openAmount]);
-
-    const handleBuyAmount = (e) => {
-        const value = e.target.value;
-        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= maxOpen)) {
-            setOpenAmount(value);
-        }
+        setNewPrice(value);
     };
 
-    const handleBuy = () => {
+    const handleUpdate = () => {
         fetchTx({
             params: {
-                abi: mysteryBoxAbi,
-                contractAddress: mysteryBoxAddress,
-                functionName: "openBox",
+                abi: marketplaceAbi,
+                contractAddress: marketplaceAddress,
+                functionName: "updatePrice",
                 params: {
-                    boxId: openInfo.boxId,
-                    amount: openAmount,
+                    saleId: saleId,
+                    newPrice: ethersUtils.parseEther(newPrice),
                 },
             },
             onSuccess: (result) => {
                 queryData.startPolling(1000);
                 setTxStep(TxStep.waitConfirmation.index);
                 result.wait().then(() => {
+                    dispatch(emitSuccess({ content: "Transaction completed!" }));
                     setTxStep(TxStep.complete.index + 1);
                     setTimeout(() => {
                         queryData.stopPolling();
-                    }, 5000);
+                    }, 3000);
                 });
             },
             onError: (error) => {
                 console.log(error);
+                dispatch(emitError({ content: "Transaction failed!" }));
             },
         });
     };
 
     return (
-        <Modal open={isOpen} onClose={!isFetching ? handleClose : null}>
+        <Modal open={isOpen} onClose={handleClose} sx={{ zIndex: "tooltip" }}>
             <Box sx={{ ...modalBoxStyle }}>
-                <Typography variant="h4">Open Box</Typography>
+                <Typography variant="h4">Update Price</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>
                     {Object.entries(TxStep).map(([_, value]) => (
                         <Step key={value.index}>
@@ -76,33 +64,33 @@ export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen
                     ))}
                 </Stepper>
                 <TextField
-                    label="Open Amount"
+                    label="New Price"
                     type="number"
                     fullWidth
                     sx={{ mt: 7 }}
-                    value={openAmount}
-                    onChange={handleBuyAmount}
+                    value={newPrice}
+                    onChange={handleNewPrice}
                     disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
                 />
                 <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
                     {txStep < TxStep.complete.index ? (
                         <>
-                            <LoadingButton
+                            <Button
                                 variant="contained"
                                 size="large"
                                 fullWidth
                                 sx={{ mr: 2 }}
-                                onClick={handleBuy}
-                                loading={isLoading}
+                                onClick={handleUpdate}
+                                disabled={isLoading || !!txData}
                             >
-                                Open
-                            </LoadingButton>
+                                Update
+                            </Button>
                             <Button
                                 variant="outlined"
                                 size="large"
                                 fullWidth
                                 onClick={handleClose}
-                                disabled={isLoading}
+                                disabled={!!txData}
                             >
                                 Cancel
                             </Button>

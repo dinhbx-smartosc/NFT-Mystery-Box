@@ -1,6 +1,6 @@
 import { Button } from "@mui/material";
 import { useState } from "react";
-import { CancelSaleModal } from "../CancelSaleModal";
+import { CancelSaleModal } from "./CancelSaleModal";
 
 export const CancelSaleButton = ({ queryData, saleInfo }) => {
     const [isCanceling, setCanceling] = useState(false);

@@ -1,68 +1,70 @@
 import { Button, Modal, Step, StepLabel, Stepper, TextField, Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useWeb3ExecuteFunction } from "react-moralis";
-import marketplaceAbi from "../../constant/abi/Marketplace.json";
-import { marketplaceAddress } from "../../constant/contractAddresses";
 import { TxStep } from "../../constant/transactionStep";
-import { utils as ethersUtils } from "ethers";
 import { LoadingButton } from "@mui/lab";
+import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
+import { mysteryBoxAddress } from "../../constant/contractAddresses";
 import { modalBoxStyle } from "../../constant/styles";
 import { useDispatch } from "react-redux";
 import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
+import EastIcon from "@mui/icons-material/East";
+import { useNavigate } from "react-router-dom";
 
-export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuying }) => {
+export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
-    const [buyAmount, setBuyAmount] = useState(saleInfo.buyAmount);
-    const { fetch: fetchTx, isFetching, isLoading } = useWeb3ExecuteFunction();
+    const [openAmount, setOpenAmount] = useState(openInfo.openAmount);
+
+    const { fetch: fetchTx, isLoading, data: txData } = useWeb3ExecuteFunction();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
     useEffect(() => {
-        if (buyAmount !== "" && !isNaN(buyAmount)) {
+        if (openAmount !== "" && !isNaN(openAmount)) {
             setTxStep(TxStep.createTx.index);
         }
-    }, [buyAmount]);
+    }, [openAmount]);
 
     const handleBuyAmount = (e) => {
         const value = e.target.value;
-        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= maxBuying)) {
-            setBuyAmount(value);
+        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= maxOpen)) {
+            setOpenAmount(value);
         }
     };
 
     const handleBuy = () => {
         fetchTx({
             params: {
-                abi: marketplaceAbi,
-                contractAddress: marketplaceAddress,
-                functionName: "buyBox",
+                abi: mysteryBoxAbi,
+                contractAddress: mysteryBoxAddress,
+                functionName: "openBox",
                 params: {
-                    saleId: saleInfo.saleId,
-                    amount: buyAmount,
+                    boxId: openInfo.boxId,
+                    amount: openAmount,
                 },
-                msgValue: buyAmount * saleInfo.priceEach,
             },
             onSuccess: (result) => {
                 queryData.startPolling(1000);
                 setTxStep(TxStep.waitConfirmation.index);
                 result.wait().then(() => {
-                    setTxStep(TxStep.complete.index + 1);
                     dispatch(emitSuccess({ content: "Transaction completed!" }));
+                    setTxStep(TxStep.complete.index + 1);
                     setTimeout(() => {
                         queryData.stopPolling();
-                    }, 3000);
+                    }, 5000);
                 });
             },
             onError: (error) => {
-                console.log(error);
                 dispatch(emitError({ content: "Transaction failed!" }));
+                console.log(error);
             },
         });
     };
 
     return (
-        <Modal open={isOpen} onClose={!isFetching ? handleClose : null} sx={{ zIndex: "tooltip" }}>
+        <Modal open={isOpen} onClose={handleClose}>
             <Box sx={{ ...modalBoxStyle }}>
-                <Typography variant="h4">Buy Box</Typography>
+                <Typography variant="h4">Open Box</Typography>
                 <Stepper activeStep={txStep} sx={{ mt: 5 }}>
                     {Object.entries(TxStep).map(([_, value]) => (
                         <Step key={value.index}>
@@ -71,11 +73,11 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
                     ))}
                 </Stepper>
                 <TextField
-                    label="New Price"
+                    label="Open Amount"
                     type="number"
                     fullWidth
                     sx={{ mt: 7 }}
-                    value={buyAmount}
+                    value={openAmount}
                     onChange={handleBuyAmount}
                     disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
                 />
@@ -89,23 +91,38 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
                                 sx={{ mr: 2 }}
                                 onClick={handleBuy}
                                 loading={isLoading}
+                                disabled={isLoading || !!txData}
                             >
-                                Buy
+                                Open
                             </LoadingButton>
                             <Button
                                 variant="outlined"
                                 size="large"
                                 fullWidth
                                 onClick={handleClose}
-                                disabled={isLoading}
+                                disabled={!!txData}
                             >
                                 Cancel
                             </Button>
                         </>
                     ) : (
-                        <Button size="large" variant="contained" fullWidth onClick={handleClose}>
-                            Close
-                        </Button>
+                        <>
+                            <Button
+                                size="large"
+                                variant="contained"
+                                fullWidth
+                                onClick={() => {
+                                    navigate("/history");
+                                }}
+                                endIcon={<EastIcon />}
+                                sx={{ mr: 2 }}
+                            >
+                                Check Open Request
+                            </Button>
+                            <Button size="large" variant="outlined" fullWidth onClick={handleClose}>
+                                Close
+                            </Button>
+                        </>
                     )}
                 </Box>
             </Box>

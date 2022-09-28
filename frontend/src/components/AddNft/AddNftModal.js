@@ -59,7 +59,6 @@ export const AddNftModal = ({ listNfts, setListNfts, isOpen, handleClose }) => {
     const [nftAddress, setNftAddress] = useState("");
     const [tokenId, setTokenId] = useState("");
     const [approved, setApproved] = useState(ApprovedState.notLoad);
-
     const { fetch: fetchApproved } = useWeb3ExecuteFunction();
     const { fetch: approve, isLoading: loadingApprove } = useWeb3ExecuteFunction();
 
@@ -137,56 +136,58 @@ export const AddNftModal = ({ listNfts, setListNfts, isOpen, handleClose }) => {
     };
 
     return (
-        <Modal open={isOpen} onClose={handleClose} sx={{ zIndex: "tooltip" }}>
-            <Box sx={{ ...style }}>
-                <Typography variant="h4">Add NFT</Typography>
-                <TextField
-                    label="Contract Address"
-                    type="text"
-                    fullWidth
-                    sx={{ mt: 6 }}
-                    value={nftAddress}
-                    onChange={handleAddress}
-                />
-                <TextField
-                    label="Token ID"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    value={tokenId}
-                    onChange={handleTokenId}
-                />
-                {generateApprove(approved)}
-                <Box sx={{ display: "flex", justifyContent: "space-around", mt: 6 }}>
-                    {approved === ApprovedState.notApproved ? (
-                        <LoadingButton
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            sx={{ mr: 2 }}
-                            onClick={handleApprove}
-                            loading={loadingApprove && !approved.loading}
-                        >
-                            Approve
-                        </LoadingButton>
-                    ) : (
-                        <LoadingButton
-                            variant="contained"
-                            size="large"
-                            fullWidth
-                            sx={{ mr: 2 }}
-                            onClick={handleConfirm}
-                            disabled={approved !== ApprovedState.approved}
-                            loading={approved === ApprovedState.loading}
-                        >
-                            Confirm
-                        </LoadingButton>
-                    )}
-                    <Button variant="outlined" size="large" fullWidth onClick={handleClose}>
-                        Cancel
-                    </Button>
+        <>
+            <Modal open={isOpen} onClose={handleClose} sx={{ zIndex: "tooltip" }}>
+                <Box sx={{ ...style }}>
+                    <Typography variant="h4">Add NFT</Typography>
+                    <TextField
+                        label="Contract Address"
+                        type="text"
+                        fullWidth
+                        sx={{ mt: 6 }}
+                        value={nftAddress}
+                        onChange={handleAddress}
+                    />
+                    <TextField
+                        label="Token ID"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        value={tokenId}
+                        onChange={handleTokenId}
+                    />
+                    {generateApprove(approved)}
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 6 }}>
+                        {approved === ApprovedState.notApproved ? (
+                            <LoadingButton
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                sx={{ mr: 2 }}
+                                onClick={handleApprove}
+                                loading={loadingApprove && !approved.loading}
+                            >
+                                Approve
+                            </LoadingButton>
+                        ) : (
+                            <LoadingButton
+                                variant="contained"
+                                size="large"
+                                fullWidth
+                                sx={{ mr: 2 }}
+                                onClick={handleConfirm}
+                                disabled={approved !== ApprovedState.approved}
+                                loading={approved === ApprovedState.loading}
+                            >
+                                Confirm
+                            </LoadingButton>
+                        )}
+                        <Button variant="outlined" size="large" fullWidth onClick={handleClose}>
+                            Cancel
+                        </Button>
+                    </Box>
                 </Box>
-            </Box>
-        </Modal>
+            </Modal>
+        </>
     );
 };

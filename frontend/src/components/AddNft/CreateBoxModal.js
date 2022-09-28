@@ -1,15 +1,4 @@
-import {
-    Button,
-    Modal,
-    Step,
-    StepLabel,
-    Stepper,
-    TextField,
-    Typography,
-    Box,
-    Alert,
-    Snackbar,
-} from "@mui/material";
+import { Button, Modal, Step, StepLabel, Stepper, Typography, Box } from "@mui/material";
 import { useEffect, useState } from "react";
 import { useWeb3ExecuteFunction } from "react-moralis";
 import marketplaceAbi from "../../constant/abi/Marketplace.json";
@@ -18,6 +7,7 @@ import { TxStep } from "../../constant/transactionStep";
 import { utils as ethersUtils } from "ethers";
 import mysteryBoxAbi from "../../constant/abi/MysteryBox.json";
 import { mysteryBoxAddress } from "../../constant/contractAddresses";
+import { BottomAlert } from "../BottomAlert";
 
 const modalBoxStyle = {
     position: "absolute",
@@ -110,11 +100,14 @@ export const CreateBoxModal = ({ isOpen, handleClose, nftAddresses, tokenIds, to
                     </Box>
                 </Box>
             </Modal>
-            <Snackbar open={openError} autoHideDuration={3000} onClose={() => setOpenError(false)}>
-                <Alert onClose={() => setOpenError(false)} severity="error" sx={{ width: "100%" }}>
-                    Transaction failed
-                </Alert>
-            </Snackbar>
+
+            <BottomAlert
+                severity="error"
+                isOpen={openError}
+                handleClose={() => setOpenError(false)}
+            >
+                Transaction failed
+            </BottomAlert>
         </>
     );
 };
