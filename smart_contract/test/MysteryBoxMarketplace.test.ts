@@ -3,7 +3,12 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { FIRST_BOX_ID, KEY_HASH } from "../utils/constant";
+import {
+    BASE_FEE,
+    FIRST_BOX_ID,
+    GAS_PRICE_LINK,
+    KEY_HASH,
+} from "../utils/constant";
 import { MysteryBox, MysteryBoxMarketPlace } from "../typechain-types";
 
 describe("MysteryBoxMarketplace", () => {
@@ -21,13 +26,28 @@ describe("MysteryBoxMarketplace", () => {
         const MysteryBoxMarketplace = await ethers.getContractFactory(
             "MysteryBoxMarketPlace"
         );
+        const LinkToken = await ethers.getContractFactory("LinkToken");
+        const VRFCoordinator = await ethers.getContractFactory(
+            "VRFCoordinator"
+        );
 
         const [seller, buyer] = await ethers.getSigners();
 
+        const linkToken = await LinkToken.deploy();
+        await linkToken.deployed();
+
+        const vrfCoordinator = await VRFCoordinator.deploy(
+            BASE_FEE,
+            GAS_PRICE_LINK,
+            linkToken.address
+        );
+
+        await vrfCoordinator.deployed();
+
         // Not open box here, so VRF info is not need
         const mysteryBox = await MysteryBox.deploy(
+            vrfCoordinator.address,
             ethers.constants.AddressZero,
-            1,
             KEY_HASH
         );
 

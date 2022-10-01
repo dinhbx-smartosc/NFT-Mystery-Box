@@ -8,10 +8,15 @@ const FUND_AMOUNT = ethers.BigNumber.from("100000000000000000000"); // 100 LINK
 
 const FIRST_BOX_ID = 0;
 
+const INIT_BALANCE = ethers.utils.parseEther("10.0");
+const CREATE_BOX_LINK = ethers.utils.parseEther("0.5");
+
 export {
     BASE_FEE,
     GAS_PRICE_LINK,
     KEY_HASH,
     FUND_AMOUNT,
     FIRST_BOX_ID,
+    INIT_BALANCE,
+    CREATE_BOX_LINK
 };

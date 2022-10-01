@@ -8,11 +8,11 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { TooltipAddress } from "../TooltipAddress";
 import { ethers } from "ethers";
+import { Image } from "mui-image";
 
 const nftAbi = ["function tokenURI(uint256) view returns (string)"];
 
 const NftCard = ({ nft }) => {
-    
     const [nftData, setNftData] = useState(null);
 
     useEffect(() => {
@@ -46,7 +46,7 @@ const NftCard = ({ nft }) => {
                         zIndex: "tooltip",
                     }}
                 >
-                    <Typography
+                    {/* <Typography
                         variant="h4"
                         sx={{
                             textAlign: "center",
@@ -57,7 +57,26 @@ const NftCard = ({ nft }) => {
                         }}
                     >
                         Opened
-                    </Typography>
+                    </Typography> */}
+                    <Box
+                        sx={{
+                            maxHeight: 100,
+                            position: "relative",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            display: "flex",
+                            justifyContent: "center",
+                        }}
+                    >
+                        <Image
+                            src="/images/treasure.png"
+                            height="100%"
+                            width="60%"
+                            fit="contained"
+                            duration={0}
+                        />
+                    </Box>
                 </Box>
             )}
             <Card>
@@ -65,7 +84,6 @@ const NftCard = ({ nft }) => {
                     <CardMedia
                         component="img"
                         image={nftData?.image}
-                        alt="green iguana"
                         sx={{ objectFit: "contain" }}
                     />
                     <CardContent>

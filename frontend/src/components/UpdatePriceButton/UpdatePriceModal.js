@@ -1,5 +1,5 @@
 import { Button, Modal, Step, StepLabel, Stepper, TextField, Typography, Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useWeb3ExecuteFunction } from "react-moralis";
 import marketplaceAbi from "../../constant/abi/Marketplace.json";
 import { marketplaceAddress } from "../../constant/contractAddresses";
@@ -8,22 +8,41 @@ import { utils as ethersUtils } from "ethers";
 import { modalBoxStyle } from "../../constant/styles";
 import { useDispatch } from "react-redux";
 import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
+import * as yup from "yup";
+import { useFormik } from "formik";
+
+const validationSchema = yup.object({
+    newPrice: yup.number().positive().max(9999).required(),
+});
 
 export const UpdatePriceModal = ({ isOpen, handleClose, saleId, queryData }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
-    const [newPrice, setNewPrice] = useState("");
     const { fetch: fetchTx, isLoading, data: txData } = useWeb3ExecuteFunction();
     const dispatch = useDispatch();
 
-    const handleNewPrice = (e) => {
-        const value = e.target.value;
-        if (value !== "" && !isNaN(value)) {
-            setTxStep(TxStep.createTx.index);
-        }
-        setNewPrice(value);
-    };
+    const formik = useFormik({
+        initialValues: {
+            newPrice: "",
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            handleSubmit(values);
+        },
+    });
 
-    const handleUpdate = () => {
+    useEffect(() => {
+        if (!formik.errors.newPrice && formik.values.newPrice !== "") {
+            if (txStep === TxStep.initialize.index) {
+                setTxStep(TxStep.createTx.index);
+            }
+        } else {
+            if (txStep === TxStep.createTx.index) {
+                setTxStep(TxStep.initialize.index);
+            }
+        }
+    }, [formik.errors.newPrice]);
+
+    const handleSubmit = (values) => {
         fetchTx({
             params: {
                 abi: marketplaceAbi,
@@ -31,7 +50,7 @@ export const UpdatePriceModal = ({ isOpen, handleClose, saleId, queryData }) => 
                 functionName: "updatePrice",
                 params: {
                     saleId: saleId,
-                    newPrice: ethersUtils.parseEther(newPrice),
+                    newPrice: ethersUtils.parseEther(values.newPrice.toString()),
                 },
             },
             onSuccess: (result) => {
@@ -63,44 +82,55 @@ export const UpdatePriceModal = ({ isOpen, handleClose, saleId, queryData }) => 
                         </Step>
                     ))}
                 </Stepper>
-                <TextField
-                    label="New Price"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 7 }}
-                    value={newPrice}
-                    onChange={handleNewPrice}
-                    disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
-                />
-                <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
-                    {txStep < TxStep.complete.index ? (
-                        <>
+                <form onSubmit={formik.handleSubmit}>
+                    <TextField
+                        label="New Price"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 7 }}
+                        disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
+                        id="newPrice"
+                        name="newPrice"
+                        value={formik.values.newPrice}
+                        onChange={formik.handleChange}
+                        error={formik.touched.newPrice && Boolean(formik.errors.newPrice)}
+                        helperText={formik.touched.newPrice && formik.errors.newPrice}
+                    />
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
+                        {txStep < TxStep.complete.index ? (
+                            <>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    fullWidth
+                                    sx={{ mr: 2 }}
+                                    type="submit"
+                                    disabled={isLoading || !!txData}
+                                >
+                                    Update
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    onClick={handleClose}
+                                    disabled={!!txData}
+                                >
+                                    Cancel
+                                </Button>
+                            </>
+                        ) : (
                             <Button
+                                size="large"
                                 variant="contained"
-                                size="large"
-                                fullWidth
-                                sx={{ mr: 2 }}
-                                onClick={handleUpdate}
-                                disabled={isLoading || !!txData}
-                            >
-                                Update
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                size="large"
                                 fullWidth
                                 onClick={handleClose}
-                                disabled={!!txData}
                             >
-                                Cancel
+                                Close
                             </Button>
-                        </>
-                    ) : (
-                        <Button size="large" variant="contained" fullWidth onClick={handleClose}>
-                            Close
-                        </Button>
-                    )}
-                </Box>
+                        )}
+                    </Box>
+                </form>
             </Box>
         </Modal>
     );

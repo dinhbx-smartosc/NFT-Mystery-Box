@@ -4,32 +4,43 @@ import { useWeb3ExecuteFunction } from "react-moralis";
 import marketplaceAbi from "../../constant/abi/Marketplace.json";
 import { marketplaceAddress } from "../../constant/contractAddresses";
 import { TxStep } from "../../constant/transactionStep";
-import { utils as ethersUtils } from "ethers";
 import { LoadingButton } from "@mui/lab";
 import { modalBoxStyle } from "../../constant/styles";
 import { useDispatch } from "react-redux";
 import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
+import EastIcon from "@mui/icons-material/East";
+import { useNavigate } from "react-router-dom";
+import * as yup from "yup";
+import { useFormik } from "formik";
 
-export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuying }) => {
+export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, selectBuy, maxBuying }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
     const [buyAmount, setBuyAmount] = useState(saleInfo.buyAmount);
     const { fetch: fetchTx, isFetching, isLoading } = useWeb3ExecuteFunction();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+
+    const validationSchema = yup.object({
+        buyAmount: yup.number().integer().min(1).max(maxBuying).required(),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            buyAmount: saleInfo.buyAmount,
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            handleSubmit(values);
+        },
+    });
 
     useEffect(() => {
-        if (buyAmount !== "" && !isNaN(buyAmount)) {
+        if (!formik.errors.buyAmount && formik.values.buyAmount !== "") {
             setTxStep(TxStep.createTx.index);
         }
-    }, [buyAmount]);
+    }, [formik.errors.buyAmount]);
 
-    const handleBuyAmount = (e) => {
-        const value = e.target.value;
-        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= maxBuying)) {
-            setBuyAmount(value);
-        }
-    };
-
-    const handleBuy = () => {
+    const handleSubmit = (values) => {
         fetchTx({
             params: {
                 abi: marketplaceAbi,
@@ -39,7 +50,7 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
                     saleId: saleInfo.saleId,
                     amount: buyAmount,
                 },
-                msgValue: buyAmount * saleInfo.priceEach,
+                msgValue: values.buyAmount * saleInfo.priceEach,
             },
             onSuccess: (result) => {
                 queryData.startPolling(1000);
@@ -47,6 +58,7 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
                 result.wait().then(() => {
                     setTxStep(TxStep.complete.index + 1);
                     dispatch(emitSuccess({ content: "Transaction completed!" }));
+                    selectBuy("");
                     setTimeout(() => {
                         queryData.stopPolling();
                     }, 3000);
@@ -70,44 +82,69 @@ export const BuyBoxModal = ({ isOpen, handleClose, queryData, saleInfo, maxBuyin
                         </Step>
                     ))}
                 </Stepper>
-                <TextField
-                    label="New Price"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 7 }}
-                    value={buyAmount}
-                    onChange={handleBuyAmount}
-                    disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
-                />
-                <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
-                    {txStep < TxStep.complete.index ? (
-                        <>
-                            <LoadingButton
-                                variant="contained"
-                                size="large"
-                                fullWidth
-                                sx={{ mr: 2 }}
-                                onClick={handleBuy}
-                                loading={isLoading}
-                            >
-                                Buy
-                            </LoadingButton>
-                            <Button
-                                variant="outlined"
-                                size="large"
-                                fullWidth
-                                onClick={handleClose}
-                                disabled={isLoading}
-                            >
-                                Cancel
-                            </Button>
-                        </>
-                    ) : (
-                        <Button size="large" variant="contained" fullWidth onClick={handleClose}>
-                            Close
-                        </Button>
-                    )}
-                </Box>
+                <form onSubmit={formik.handleSubmit}>
+                    <TextField
+                        label="New Price"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 7 }}
+                        disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
+                        id="buyAmount"
+                        name="buyAmount"
+                        value={formik.values.buyAmount}
+                        onChange={formik.handleChange}
+                        error={formik.touched.buyAmount && Boolean(formik.errors.buyAmount)}
+                        helperText={formik.touched.buyAmount && formik.errors.buyAmount}
+                    />
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
+                        {txStep < TxStep.complete.index ? (
+                            <>
+                                <LoadingButton
+                                    variant="contained"
+                                    size="large"
+                                    fullWidth
+                                    sx={{ mr: 2 }}
+                                    loading={isLoading}
+                                    type="submit"
+                                >
+                                    Buy
+                                </LoadingButton>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    onClick={handleClose}
+                                    disabled={isLoading}
+                                >
+                                    Cancel
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    size="large"
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={() => {
+                                        navigate("/owned");
+                                    }}
+                                    sx={{ mr: 2 }}
+                                    endIcon={<EastIcon />}
+                                >
+                                    Your Box
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    onClick={handleClose}
+                                >
+                                    Close
+                                </Button>
+                            </>
+                        )}
+                    </Box>
+                </form>
             </Box>
         </Modal>
     );

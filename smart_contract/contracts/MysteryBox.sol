@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
-import "hardhat/console.sol";
+import "@chainlink/contracts/src/v0.8/interfaces/LinkTokenInterface.sol";
 
 error InsufficientBoxForOpen();
 error InsufficientNftInPool();
@@ -51,11 +51,12 @@ contract MysteryBox is
     }
 
     // Chainlink VRF's related variables
-    uint64 private vrfSubscriptionId;
+    uint64 public vrfSubscriptionId;
     bytes32 private vrfKeyHash;
     uint32 immutable callbackGasLimit = 200000;
     uint16 immutable requestConfirmations = 3;
-    VRFCoordinatorV2Interface private vrfCoordinator;
+    VRFCoordinatorV2Interface public vrfCoordinator;
+    LinkTokenInterface public linkToken;
 
     Counters.Counter public boxTypeCounter;
     mapping(uint256 => NFT[]) private idToBoxedNFT; /* boxId (tokenID) to its properties */
@@ -99,17 +100,31 @@ contract MysteryBox is
 
     /**
      * @param coordinatorAddress Chainlink VRFv2 Coordinator contract address
-     * @param subscriptionId Subscription id for Chainlink VRF
      * @param keyHash keyHash for Chainlink VRF
+     * must be greater the minimum balance needed of VRF subscription.
      */
     constructor(
         address coordinatorAddress,
-        uint64 subscriptionId,
+        address linkTokenAddress,
         bytes32 keyHash
     ) ERC1155("") VRFConsumerBaseV2(coordinatorAddress) {
-        vrfSubscriptionId = subscriptionId;
         vrfKeyHash = keyHash;
         vrfCoordinator = VRFCoordinatorV2Interface(coordinatorAddress);
+        linkToken = LinkTokenInterface(linkTokenAddress);
+        _createSubscription();
+    }
+
+    function _createSubscription() private {
+        vrfSubscriptionId = vrfCoordinator.createSubscription();
+        vrfCoordinator.addConsumer(vrfSubscriptionId, address(this));
+    }
+
+    function fundSubscription(uint256 amount) public {
+        linkToken.transferAndCall(
+            address(vrfCoordinator),
+            amount,
+            abi.encode(vrfSubscriptionId)
+        );
     }
 
     /**

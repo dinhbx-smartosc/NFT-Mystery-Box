@@ -39,7 +39,7 @@ export const OwnedBox = () => {
                     {account ? (
                         <Grid container spacing={2}>
                             {data &&
-                                data.boxBalances.map((item) => (
+                                [...data.boxBalances].reverse().map((item) => (
                                     <Grid item xs={3} key={item.id}>
                                         <OwnedBoxCard
                                             data={{

@@ -100,10 +100,14 @@ export const WithdrawModal = ({ isOpen, handleClose }) => {
                 </Stepper>
                 <Box sx={{ display: "flex", mt: 5 }}>
                     <Typography sx={{ fontSize: "1.5rem" }}>Balance:&nbsp;</Typography>
-                    {loadingBalance || !balanceData || !balanceData.ethBalance ? (
+                    {loadingBalance || !balanceData || balanceData.ethBalance === undefined ? (
                         <CircularProgress />
                     ) : (
-                        <EthPriceLarge value={balanceData.ethBalance.balance} />
+                        <EthPriceLarge
+                            value={
+                                balanceData.ethBalance === null ? 0 : balanceData.ethBalance.balance
+                            }
+                        />
                     )}
                 </Box>
                 <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>

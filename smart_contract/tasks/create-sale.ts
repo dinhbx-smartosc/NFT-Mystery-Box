@@ -1,5 +1,9 @@
 import { task, types } from "hardhat/config";
 import "dotenv/config";
+import {
+    marketplaceAddress,
+    mysteryBoxAddress,
+} from "../utils/contractAddress";
 
 const signer = {
     owner: 0,
@@ -32,12 +36,8 @@ task("create-sale", "Create a sale of Marketplace contract")
             const MarketPlace = await ethers.getContractFactory(
                 "MysteryBoxMarketPlace"
             );
-            const mysteryBox = MysteryBox.attach(
-                "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-            );
-            const markeplace = MarketPlace.attach(
-                "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707"
-            );
+            const mysteryBox = MysteryBox.attach(mysteryBoxAddress);
+            const markeplace = MarketPlace.attach(marketplaceAddress);
 
             const { seller: namedSeller, boxId, amount, price } = args;
 
@@ -49,7 +49,9 @@ task("create-sale", "Create a sale of Marketplace contract")
                 .connect(seller)
                 .setApprovalForAll(markeplace.address, true);
             console.log("Creating sale...");
-            await markeplace.connect(seller).createSale(boxId, amount, priceInEth);
+            await markeplace
+                .connect(seller)
+                .createSale(boxId, amount, priceInEth);
             console.log(
                 `${seller.address} created sale of box ${boxId} with amount ${amount}, priceEach ${price}`
             );
