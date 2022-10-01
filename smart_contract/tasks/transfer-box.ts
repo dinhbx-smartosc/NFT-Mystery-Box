@@ -1,5 +1,6 @@
 import { task, types } from "hardhat/config";
 import "dotenv/config";
+import { mysteryBoxAddress } from "../utils/contractAddress";
 
 const signer = {
     owner: 0,
@@ -21,9 +22,7 @@ task("transfer-box", "Transfer box of Mystery Box")
             { ethers }
         ) => {
             const MysteryBox = await ethers.getContractFactory("MysteryBox");
-            const mysteryBox = MysteryBox.attach(
-                "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-            );
+            const mysteryBox = MysteryBox.attach(mysteryBoxAddress);
 
             const accounts = await ethers.getSigners();
             const from = accounts[signer[args.from as signerKey]];

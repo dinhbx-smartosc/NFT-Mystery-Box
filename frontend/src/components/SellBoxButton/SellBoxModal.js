@@ -11,6 +11,8 @@ import { useDispatch } from "react-redux";
 import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
 import EastIcon from "@mui/icons-material/East";
 import { useNavigate } from "react-router-dom";
+import * as yup from "yup";
+import { useFormik } from "formik";
 
 const Steps = {
     initializeSale: 0,
@@ -27,11 +29,10 @@ const GET_APPROVAL = gql`
     }
 `;
 
-export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }) => {
+export const SellBoxModal = ({ isSelling, handleClose, saleData, queryData }) => {
     const [sellingStep, setSellingStep] = useState(Steps.initializeSale);
-    const [sellAmount, setSellAmount] = useState("");
-    const [priceEach, setPriceEach] = useState("");
     const navigate = useNavigate();
+
     const {
         fetch: fetchApprove,
         isLoading: isLoadingApprove,
@@ -49,20 +50,41 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
         stopPolling: stopPollingApprove,
     } = useQuery(GET_APPROVAL, {
         variables: {
-            id: owner.toLowerCase() + "." + marketplaceAddress.toLowerCase(),
+            id: saleData.owner.toLowerCase() + "." + marketplaceAddress.toLowerCase(),
         },
     });
     const dispatch = useDispatch();
 
+    const validationSchema = yup.object({
+        sellAmount: yup.number().integer().min(1).max(saleData.maxBuying).required(),
+        priceEach: yup.number().positive().max(9999).required(),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            sellAmount: "",
+            priceEach: "",
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            handleSubmit(values);
+        },
+    });
+
     useEffect(() => {
-        if (sellAmount !== "" && priceEach !== "" && !isNaN(sellAmount) && !isNaN(priceEach)) {
+        if (
+            !formik.errors.sellAmount &&
+            !formik.errors.priceEach &&
+            formik.values.sellAmount !== "" &&
+            formik.values.priceEach !== ""
+        ) {
             if (sellingStep === Steps.initializeSale) {
                 setSellingStep(Steps.approveBox);
             }
         } else {
             setSellingStep(Steps.initializeSale);
         }
-    }, [sellAmount, priceEach]);
+    }, [formik.errors.sellAmount, formik.errors.priceEach]);
 
     useEffect(() => {
         if (approveData && approveData.approval) {
@@ -78,9 +100,8 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
         }
     }, [approveData, sellingStep]);
 
-    const handleConfirm = () => {
+    const handleSubmit = (values) => {
         if (sellingStep === Steps.approveBox) {
-            console.log("Called Approve");
             fetchApprove({
                 params: {
                     abi: mysteryBoxAbi,
@@ -107,16 +128,15 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
             return;
         }
         if (sellingStep === Steps.createSale) {
-            console.log("Called Create");
             fetchCreate({
                 params: {
                     abi: marketplaceAbi,
                     contractAddress: marketplaceAddress,
                     functionName: "createSale",
                     params: {
-                        boxId: boxId,
-                        amount: sellAmount,
-                        priceEach: ethersUtils.parseEther(priceEach),
+                        boxId: saleData.boxId,
+                        amount: values.sellAmount.toString(),
+                        priceEach: ethersUtils.parseEther(values.priceEach.toString()),
                     },
                 },
                 onSuccess: (result) => {
@@ -156,72 +176,87 @@ export const SellBoxModal = ({ isSelling, handleClose, owner, boxId, queryData }
                         <StepLabel>Completed</StepLabel>
                     </Step>
                 </Stepper>
-                <TextField
-                    label="Sell Amount"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 6 }}
-                    value={sellAmount}
-                    disabled={isLoadingCreate || sellingStep > Steps.createSale}
-                    onChange={(e) => setSellAmount(e.target.value)}
-                />
-                <TextField
-                    label="Price Each"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 2 }}
-                    value={priceEach}
-                    disabled={isLoadingCreate || sellingStep > Steps.createSale}
-                    onChange={(e) => setPriceEach(e.target.value)}
-                />
-                <Box sx={{ display: "flex", justifyContent: "space-around", mt: 6 }}>
-                    {sellingStep < Steps.completed ? (
-                        <>
-                            <Button
-                                variant="contained"
-                                size="large"
-                                fullWidth
-                                sx={{ mr: 2 }}
-                                disabled={
-                                    isLoadingApprove ||
-                                    isLoadingCreate ||
-                                    sellingStep > Steps.createSale ||
-                                    !!dataCreate
-                                }
-                                onClick={handleConfirm}
-                            >
-                                {sellingStep === Steps.approveBox ? "Approve" : "Create"}
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                size="large"
-                                fullWidth
-                                disabled={!!dataCreate}
-                                onClick={handleClose}
-                            >
-                                Cancel
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                size="large"
-                                variant="contained"
-                                fullWidth
-                                onClick={() => {
-                                    navigate("/selling?seller=user");
-                                }}
-                                sx={{ mr: 2 }}
-                                endIcon={<EastIcon />}
-                            >
-                                Marketplace
-                            </Button>{" "}
-                            <Button variant="outlined" size="large" fullWidth onClick={handleClose}>
-                                Close
-                            </Button>{" "}
-                        </>
-                    )}
-                </Box>
+                <form onSubmit={formik.handleSubmit}>
+                    <TextField
+                        label="Sell Amount"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 6 }}
+                        disabled={isLoadingCreate || sellingStep > Steps.createSale}
+                        id="sellAmount"
+                        name="sellAmount"
+                        value={formik.values.sellAmount}
+                        onChange={formik.handleChange}
+                        error={formik.touched.sellAmount && Boolean(formik.errors.sellAmount)}
+                        helperText={formik.touched.sellAmount && formik.errors.sellAmount}
+                    />
+                    <TextField
+                        label="Price Each"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 2 }}
+                        disabled={isLoadingCreate || sellingStep > Steps.createSale}
+                        id="priceEach"
+                        name="priceEach"
+                        value={formik.values.priceEach}
+                        onChange={formik.handleChange}
+                        error={formik.touched.priceEach && Boolean(formik.errors.priceEach)}
+                        helperText={formik.touched.priceEach && formik.errors.priceEach}
+                    />
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 6 }}>
+                        {sellingStep < Steps.completed ? (
+                            <>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    fullWidth
+                                    sx={{ mr: 2 }}
+                                    disabled={
+                                        isLoadingApprove ||
+                                        isLoadingCreate ||
+                                        sellingStep > Steps.createSale ||
+                                        !!dataCreate
+                                    }
+                                    type="submit"
+                                >
+                                    {sellingStep === Steps.approveBox ? "Approve" : "Create"}
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    disabled={!!dataCreate}
+                                    onClick={handleClose}
+                                >
+                                    Cancel
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    size="large"
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={() => {
+                                        navigate("/selling?seller=user");
+                                    }}
+                                    sx={{ mr: 2 }}
+                                    endIcon={<EastIcon />}
+                                >
+                                    Marketplace
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    onClick={handleClose}
+                                >
+                                    Close
+                                </Button>
+                            </>
+                        )}
+                    </Box>
+                </form>
             </Box>
         </Modal>
     );

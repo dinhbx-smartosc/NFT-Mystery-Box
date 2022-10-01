@@ -19,10 +19,7 @@ export const SellBoxButton = ({ saleData, queryData }) => {
             </Button>
             {isSelling && (
                 <SellBoxModal
-                    // owner={id.split(".")[0]}
-                    // boxId={data?.boxBalance.box.boxId}
-                    owner={saleData.owner}
-                    boxId={saleData.boxId}
+                    saleData={saleData}
                     isSelling={isSelling}
                     handleClose={() => setSelling(false)}
                     queryData={queryData}

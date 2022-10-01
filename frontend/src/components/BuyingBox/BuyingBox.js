@@ -1,17 +1,18 @@
 import { Box, Button } from "@mui/material";
-import { useWeb3ExecuteFunction } from "react-moralis";
-import marketplaceAbi from "../../constant/abi/Marketplace.json";
-import { marketplaceAddress } from "../../constant/contractAddresses";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
+import { emitInfo } from "../../redux/slices/alertSlice";
 import { Counter } from "../Counter";
 import { BuyBoxModal } from "./BuyBoxModal";
 
 const BuyingBox = ({ saleId, priceEach, queryData, maxBuying }) => {
     const [buyAmount, setBuyAmount] = useState("");
     const [isBuying, setBuying] = useState(false);
+    const dispatch = useDispatch();
 
     const handleBuy = () => {
         if (buyAmount < 1) {
+            dispatch(emitInfo({ content: "Buy amount should be greater than 0" }));
             return;
         }
         setBuying(true);
@@ -43,6 +44,7 @@ const BuyingBox = ({ saleId, priceEach, queryData, maxBuying }) => {
                     queryData={queryData}
                     saleInfo={{ saleId, buyAmount, priceEach }}
                     maxBuying={maxBuying}
+                    selectBuy={setBuyAmount}
                 />
             )}
         </Box>

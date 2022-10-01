@@ -80,7 +80,7 @@ export const OwnedBoxDetail = () => {
                         sx={{ flex: 5, maxWidth: "50%" }}
                         component="img"
                         image={boxData?.image}
-                        alt="green iguana"
+                        
                     />
                     <Box
                         sx={{
@@ -116,6 +116,7 @@ export const OwnedBoxDetail = () => {
                                 saleData={{
                                     owner: id.split(".")[0],
                                     boxId: data?.boxBalance.box.boxId,
+                                    maxBuying: data?.boxBalance.balance,
                                 }}
                                 queryData={{ startPolling, stopPolling }}
                             />

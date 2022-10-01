@@ -7,27 +7,41 @@ import { TxStep } from "../../constant/transactionStep";
 import { modalBoxStyle } from "../../constant/styles";
 import { useDispatch } from "react-redux";
 import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
+import * as yup from "yup";
+import { useFormik } from "formik";
 
 export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
-    const [cancelAmount, setCancelAmount] = useState("");
     const { fetch: fetchTx, isLoading, data: txData } = useWeb3ExecuteFunction();
     const dispatch = useDispatch();
 
+    const validationSchema = yup.object({
+        cancelAmount: yup.number().integer().min(1).max(saleInfo.amount).required(),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            cancelAmount: "",
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            handleSubmit(values);
+        },
+    });
+
     useEffect(() => {
-        if (cancelAmount !== "" && !isNaN(cancelAmount)) {
-            setTxStep(TxStep.createTx.index);
+        if (!formik.errors.cancelAmount && formik.values.cancelAmount !== "") {
+            if (txStep === TxStep.initialize.index) {
+                setTxStep(TxStep.createTx.index);
+            }
+        } else {
+            if (txStep === TxStep.createTx.index) {
+                setTxStep(TxStep.initialize.index);
+            }
         }
-    }, [cancelAmount]);
+    }, [formik.errors.cancelAmount]);
 
-    const handleNewPrice = (e) => {
-        const value = e.target.value;
-        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= saleInfo.amount)) {
-            setCancelAmount(value);
-        }
-    };
-
-    const handleUpdate = () => {
+    const handleSubmit = (values) => {
         fetchTx({
             params: {
                 abi: marketplaceAbi,
@@ -35,7 +49,7 @@ export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) =>
                 functionName: "cancelSelling",
                 params: {
                     saleId: saleInfo.saleId,
-                    amount: cancelAmount,
+                    amount: values.cancelAmount.toString(),
                 },
             },
             onSuccess: (result) => {
@@ -67,44 +81,55 @@ export const CancelSaleModal = ({ isOpen, handleClose, queryData, saleInfo }) =>
                         </Step>
                     ))}
                 </Stepper>
-                <TextField
-                    label="Cancel Amount"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 7 }}
-                    value={cancelAmount}
-                    onChange={handleNewPrice}
-                    disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
-                />
-                <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
-                    {txStep < TxStep.complete.index ? (
-                        <>
+                <form onSubmit={formik.handleSubmit}>
+                    <TextField
+                        label="Cancel Amount"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 7 }}
+                        disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
+                        id="cancelAmount"
+                        name="cancelAmount"
+                        value={formik.values.cancelAmount}
+                        onChange={formik.handleChange}
+                        error={formik.touched.cancelAmount && Boolean(formik.errors.cancelAmount)}
+                        helperText={formik.touched.cancelAmount && formik.errors.cancelAmount}
+                    />
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
+                        {txStep < TxStep.complete.index ? (
+                            <>
+                                <Button
+                                    variant="contained"
+                                    size="large"
+                                    fullWidth
+                                    sx={{ mr: 2 }}
+                                    type="submit"
+                                    disabled={isLoading || !!txData}
+                                >
+                                    Confirm
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    onClick={handleClose}
+                                    disabled={!!txData}
+                                >
+                                    Cancel
+                                </Button>
+                            </>
+                        ) : (
                             <Button
+                                size="large"
                                 variant="contained"
-                                size="large"
-                                fullWidth
-                                sx={{ mr: 2 }}
-                                onClick={handleUpdate}
-                                disabled={isLoading || !!txData}
-                            >
-                                Confirm
-                            </Button>
-                            <Button
-                                variant="outlined"
-                                size="large"
                                 fullWidth
                                 onClick={handleClose}
-                                disabled={!!txData}
                             >
-                                Cancel
+                                Close
                             </Button>
-                        </>
-                    ) : (
-                        <Button size="large" variant="contained" fullWidth onClick={handleClose}>
-                            Close
-                        </Button>
-                    )}
-                </Box>
+                        )}
+                    </Box>
+                </form>
             </Box>
         </Modal>
     );

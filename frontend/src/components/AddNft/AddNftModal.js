@@ -55,6 +55,7 @@ const generateApprove = (approvedState) => {
 };
 
 export const AddNftModal = ({ listNfts, setListNfts, isOpen, handleClose }) => {
+    
     const account = useSelector((state) => state.account.address);
     const [nftAddress, setNftAddress] = useState("");
     const [tokenId, setTokenId] = useState("");

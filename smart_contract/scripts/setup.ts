@@ -4,51 +4,48 @@ import {
     BASE_FEE,
     FUND_AMOUNT,
     GAS_PRICE_LINK,
+    INIT_BALANCE,
     KEY_HASH,
 } from "../utils/constant";
 
 const deploy = async () => {
     const MysteryBox = await ethers.getContractFactory("MysteryBox");
-    const VRFCoordinatorV2Mock = await ethers.getContractFactory(
-        "VRFCoordinatorV2Mock"
-    );
+    const LinkToken = await ethers.getContractFactory("LinkToken");
+    const VRFCoordinator = await ethers.getContractFactory("VRFCoordinator");
     const SampleNFT = await ethers.getContractFactory("SampleNFT");
     const MarketPlace = await ethers.getContractFactory(
         "MysteryBoxMarketPlace"
     );
-    const [owner] = await ethers.getSigners();
+
+    console.log("Deploying LinkToken...");
+    const linkToken = await LinkToken.deploy();
+    await linkToken.deployed();
+    console.log("LinkToken deployed at:", linkToken.address);
 
     console.log("Deploying VRFCoordinatorMock...");
-
-    const vrfCoordinator = await VRFCoordinatorV2Mock.deploy(
+    const vrfCoordinator = await VRFCoordinator.deploy(
         BASE_FEE,
-        GAS_PRICE_LINK
+        GAS_PRICE_LINK,
+        linkToken.address
     );
-
     await vrfCoordinator.deployed();
     console.log("VRFCoordinatorMock deployed at:", vrfCoordinator.address);
 
-    // Create subscription for VRF
-    const createSubscriptionTx = await vrfCoordinator.createSubscription();
-    const createSubscriptionReceipt = await createSubscriptionTx.wait();
-    const subscriptionCreatedEvent = createSubscriptionReceipt.events![0];
-    const subscriptionId = subscriptionCreatedEvent.args!.subId;
-
-    // Fund subscription
-    await vrfCoordinator.fundSubscription(subscriptionId, FUND_AMOUNT);
-
     console.log("Deploying MysteryBox...");
-
     const mysteryBox = await MysteryBox.deploy(
         vrfCoordinator.address,
-        subscriptionId,
+        linkToken.address,
         KEY_HASH
     );
+
     await mysteryBox.deployed();
     console.log("MysteryBox deployed at:", mysteryBox.address);
 
-    //Add mysteryBox contract to VRF subscription's consumers.
-    await vrfCoordinator.addConsumer(subscriptionId, mysteryBox.address);
+    await linkToken.transfer(
+        mysteryBox.address,
+        ethers.utils.parseEther("100.0")
+    );
+    await mysteryBox.fundSubscription(INIT_BALANCE);
 
     console.log("Deploying Marketplace...");
     const markeplace = await MarketPlace.deploy(mysteryBox.address);

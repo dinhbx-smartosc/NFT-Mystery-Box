@@ -34,7 +34,7 @@ export const OwnedBoxCard = ({ data }) => {
                     component="img"
                     height="270"
                     image={metadata.image}
-                    alt="green iguana"
+                    
                     sx={{ objectFit: "cover" }}
                 />
                 <CardContent>

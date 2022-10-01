@@ -7,9 +7,9 @@
                 "type": "address"
             },
             {
-                "internalType": "uint64",
-                "name": "subscriptionId",
-                "type": "uint64"
+                "internalType": "address",
+                "name": "linkTokenAddress",
+                "type": "address"
             },
             {
                 "internalType": "bytes32",
@@ -386,6 +386,19 @@
         "inputs": [
             {
                 "internalType": "uint256",
+                "name": "amount",
+                "type": "uint256"
+            }
+        ],
+        "name": "fundSubscription",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
                 "name": "boxId",
                 "type": "uint256"
             }
@@ -468,6 +481,19 @@
                 "internalType": "bool",
                 "name": "",
                 "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "linkToken",
+        "outputs": [
+            {
+                "internalType": "contract LinkTokenInterface",
+                "name": "",
+                "type": "address"
             }
         ],
         "stateMutability": "view",
@@ -771,6 +797,32 @@
                 "internalType": "string",
                 "name": "",
                 "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "vrfCoordinator",
+        "outputs": [
+            {
+                "internalType": "contract VRFCoordinatorV2Interface",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "vrfSubscriptionId",
+        "outputs": [
+            {
+                "internalType": "uint64",
+                "name": "",
+                "type": "uint64"
             }
         ],
         "stateMutability": "view",

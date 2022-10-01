@@ -10,29 +10,43 @@ import { useDispatch } from "react-redux";
 import { emitError, emitSuccess } from "../../redux/slices/alertSlice";
 import EastIcon from "@mui/icons-material/East";
 import { useNavigate } from "react-router-dom";
+import * as yup from "yup";
+import { useFormik } from "formik";
 
-export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen }) => {
+export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen, setCounter }) => {
     const [txStep, setTxStep] = useState(TxStep.initialize.index);
-    const [openAmount, setOpenAmount] = useState(openInfo.openAmount);
 
     const { fetch: fetchTx, isLoading, data: txData } = useWeb3ExecuteFunction();
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
+    const validationSchema = yup.object({
+        openAmount: yup.number().integer().min(1).max(maxOpen).required(),
+    });
+
+    const formik = useFormik({
+        initialValues: {
+            openAmount: openInfo.openAmount,
+        },
+        validationSchema: validationSchema,
+        onSubmit: (values) => {
+            handleSubmit(values);
+        },
+    });
+
     useEffect(() => {
-        if (openAmount !== "" && !isNaN(openAmount)) {
-            setTxStep(TxStep.createTx.index);
+        if (!formik.errors.openAmount && formik.values.openAmount !== "") {
+            if (txStep === TxStep.initialize.index) {
+                setTxStep(TxStep.createTx.index);
+            }
+        } else {
+            if (txStep === TxStep.createTx.index) {
+                setTxStep(TxStep.initialize.index);
+            }
         }
-    }, [openAmount]);
+    }, [formik.errors.openAmount]);
 
-    const handleBuyAmount = (e) => {
-        const value = e.target.value;
-        if (value === "" || (1 <= parseInt(value) && parseInt(value) <= maxOpen)) {
-            setOpenAmount(value);
-        }
-    };
-
-    const handleBuy = () => {
+    const handleSubmit = (values) => {
         fetchTx({
             params: {
                 abi: mysteryBoxAbi,
@@ -40,7 +54,7 @@ export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen
                 functionName: "openBox",
                 params: {
                     boxId: openInfo.boxId,
-                    amount: openAmount,
+                    amount: values.openAmount.toString(),
                 },
             },
             onSuccess: (result) => {
@@ -49,9 +63,10 @@ export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen
                 result.wait().then(() => {
                     dispatch(emitSuccess({ content: "Transaction completed!" }));
                     setTxStep(TxStep.complete.index + 1);
+                    setCounter("");
                     setTimeout(() => {
                         queryData.stopPolling();
-                    }, 5000);
+                    }, 3000);
                 });
             },
             onError: (error) => {
@@ -72,59 +87,70 @@ export const OpenBoxModal = ({ isOpen, handleClose, queryData, openInfo, maxOpen
                         </Step>
                     ))}
                 </Stepper>
-                <TextField
-                    label="Open Amount"
-                    type="number"
-                    fullWidth
-                    sx={{ mt: 7 }}
-                    value={openAmount}
-                    onChange={handleBuyAmount}
-                    disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
-                />
-                <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
-                    {txStep < TxStep.complete.index ? (
-                        <>
-                            <LoadingButton
-                                variant="contained"
-                                size="large"
-                                fullWidth
-                                sx={{ mr: 2 }}
-                                onClick={handleBuy}
-                                loading={isLoading}
-                                disabled={isLoading || !!txData}
-                            >
-                                Open
-                            </LoadingButton>
-                            <Button
-                                variant="outlined"
-                                size="large"
-                                fullWidth
-                                onClick={handleClose}
-                                disabled={!!txData}
-                            >
-                                Cancel
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                size="large"
-                                variant="contained"
-                                fullWidth
-                                onClick={() => {
-                                    navigate("/history");
-                                }}
-                                endIcon={<EastIcon />}
-                                sx={{ mr: 2 }}
-                            >
-                                Check Open Request
-                            </Button>
-                            <Button size="large" variant="outlined" fullWidth onClick={handleClose}>
-                                Close
-                            </Button>
-                        </>
-                    )}
-                </Box>
+                <form onSubmit={formik.handleSubmit}>
+                    <TextField
+                        label="Open Amount"
+                        type="number"
+                        fullWidth
+                        sx={{ mt: 7 }}
+                        disabled={isLoading || txStep >= TxStep.waitConfirmation.index}
+                        id="openAmount"
+                        name="openAmount"
+                        value={formik.values.openAmount}
+                        onChange={formik.handleChange}
+                        error={formik.touched.openAmount && Boolean(formik.errors.openAmount)}
+                        helperText={formik.touched.openAmount && formik.errors.openAmount}
+                    />
+                    <Box sx={{ display: "flex", justifyContent: "space-around", mt: 5, mb: 2 }}>
+                        {txStep < TxStep.complete.index ? (
+                            <>
+                                <LoadingButton
+                                    variant="contained"
+                                    size="large"
+                                    fullWidth
+                                    sx={{ mr: 2 }}
+                                    loading={isLoading}
+                                    disabled={isLoading || !!txData}
+                                    type="submit"
+                                >
+                                    Open
+                                </LoadingButton>
+                                <Button
+                                    variant="outlined"
+                                    size="large"
+                                    fullWidth
+                                    onClick={handleClose}
+                                    disabled={!!txData}
+                                >
+                                    Cancel
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button
+                                    size="large"
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={() => {
+                                        navigate("/history");
+                                    }}
+                                    endIcon={<EastIcon />}
+                                    sx={{ mr: 2 }}
+                                >
+                                    Check Open Request
+                                </Button>
+                                <Button
+                                    size="large"
+                                    variant="outlined"
+                                    fullWidth
+                                    onClick={handleClose}
+                                >
+                                    Close
+                                </Button>
+                            </>
+                        )}
+                    </Box>
+                </form>
             </Box>
         </Modal>
     );

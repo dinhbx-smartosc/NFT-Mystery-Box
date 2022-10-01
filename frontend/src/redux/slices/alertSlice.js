@@ -32,7 +32,7 @@ export const alertSlice = createSlice({
         },
         closeAlert: (state) => {
             state.content = "";
-            state.type = "";
+            state.type = "info";
             state.isOpen = false;
         },
     },

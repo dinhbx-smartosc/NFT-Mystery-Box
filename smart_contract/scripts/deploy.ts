@@ -3,51 +3,47 @@ import {
     BASE_FEE,
     FUND_AMOUNT,
     GAS_PRICE_LINK,
+    INIT_BALANCE,
     KEY_HASH,
 } from "../utils/constant";
 
-async function main() {
+const deploy = async () => {
     const MysteryBox = await ethers.getContractFactory("MysteryBox");
-    const VRFCoordinatorV2Mock = await ethers.getContractFactory(
-        "VRFCoordinatorV2Mock"
-    );
+    const LinkToken = await ethers.getContractFactory("LinkToken");
+    const VRFCoordinator = await ethers.getContractFactory("VRFCoordinator");
     const SampleNFT = await ethers.getContractFactory("SampleNFT");
     const MarketPlace = await ethers.getContractFactory(
         "MysteryBoxMarketPlace"
     );
-    const [owner] = await ethers.getSigners();
 
+    console.log("Deploying LinkToken...");
+    const linkToken = await LinkToken.deploy();
+    await linkToken.deployed();
+    console.log("LinkToken deployed at:", linkToken.address);
     console.log("Deploying VRFCoordinatorMock...");
-
-    const vrfCoordinator = await VRFCoordinatorV2Mock.deploy(
+    const vrfCoordinator = await VRFCoordinator.deploy(
         BASE_FEE,
-        GAS_PRICE_LINK
+        GAS_PRICE_LINK,
+        linkToken.address
     );
-
     await vrfCoordinator.deployed();
     console.log("VRFCoordinatorMock deployed at:", vrfCoordinator.address);
 
-    // Create subscription for VRF
-    const createSubscriptionTx = await vrfCoordinator.createSubscription();
-    const createSubscriptionReceipt = await createSubscriptionTx.wait();
-    const subscriptionCreatedEvent = createSubscriptionReceipt.events![0];
-    const subscriptionId = subscriptionCreatedEvent.args!.subId;
-
-    // Fund subscription
-    await vrfCoordinator.fundSubscription(subscriptionId, FUND_AMOUNT);
-
     console.log("Deploying MysteryBox...");
-
     const mysteryBox = await MysteryBox.deploy(
         vrfCoordinator.address,
-        subscriptionId,
+        linkToken.address,
         KEY_HASH
     );
+
     await mysteryBox.deployed();
     console.log("MysteryBox deployed at:", mysteryBox.address);
 
-    //Add mysteryBox contract to VRF subscription's consumers.
-    await vrfCoordinator.addConsumer(subscriptionId, mysteryBox.address);
+    await linkToken.transfer(
+        mysteryBox.address,
+        ethers.utils.parseEther("100.0")
+    );
+    await mysteryBox.fundSubscription(INIT_BALANCE);
 
     console.log("Deploying Marketplace...");
     const markeplace = await MarketPlace.deploy(mysteryBox.address);
@@ -129,11 +125,56 @@ async function main() {
     );
     await pancakeBunniesNft.deployed();
     console.log("Pancake Bunnies NFT deployed at:", pancakeBunniesNft.address);
-}
+
+    //Deploy Business Whale
+    const businessWhale = await SampleNFT.deploy(
+        "Business Whale",
+        "BWE",
+        "http://127.0.0.1:8080/ipfs/Qmefx7RDQJnf4ryP8dRGPUvybbms9gtfRz9B6sc3U67igF/"
+    );
+    await businessWhale.deployed();
+    console.log("Business Whale NFT deployed at:", businessWhale.address);
+
+    //Deploy Holy Bear
+    const holyBearNft = await SampleNFT.deploy(
+        "Holy Bear",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmT2vBxWhjbYLJKUfHXqf7CXaS3Abcy1FKRFgcuLfk7MbP/"
+    );
+    await holyBearNft.deployed();
+    console.log("Holy Bear NFT deployed at:", holyBearNft.address);
+
+    //Deploy Meta Frog
+    const metaFrogNft = await SampleNFT.deploy(
+        "Meta Frog",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmaKLHVSe16ctZnwVjrd2Jv6AtS4W7R94mQzKTo6B65cvo/"
+    );
+    await metaFrogNft.deployed();
+    console.log("Meta Frog NFT deployed at:", metaFrogNft.address);
+
+    //Deploy Moose Typcoons
+    const mooseTypcoons = await SampleNFT.deploy(
+        "Moose Typcoons",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmV31wrVPnhYB7PKvS5xRvfte7Zoeau4i6VB42bYzJkPFe/"
+    );
+    await mooseTypcoons.deployed();
+    console.log("Moose Typcoons NFT deployed at:", mooseTypcoons.address);
+
+    //Deploy tonSummerNft
+    const tonSummerNft = await SampleNFT.deploy(
+        "Ton Summer",
+        "BUN",
+        "http://127.0.0.1:8080/ipfs/QmSq995HrEojjXho2aesUbi6JaPVTG7esqeUgVKabCevbD/"
+    );
+    await tonSummerNft.deployed();
+    console.log("Ton Summer NFT deployed at:", tonSummerNft.address);
+};
 
 // We recommend this pattern to be able to use async/await everywhere
 // and properly handle errors.
-main().catch((error) => {
+deploy().catch((error) => {
     console.error(error);
     process.exitCode = 1;
 });

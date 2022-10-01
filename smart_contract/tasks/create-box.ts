@@ -1,5 +1,6 @@
 import { task, types } from "hardhat/config";
 import "dotenv/config";
+import { mysteryBoxAddress } from "../utils/contractAddress";
 
 const nftContracts = {
     cuteCat: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
@@ -17,9 +18,7 @@ task("create-box", "Create new box of Mystery Box contract")
         async (args: { contract: string; ids: number[] }, { ethers }) => {
             const MysteryBox = await ethers.getContractFactory("MysteryBox");
             const SampleNFT = await ethers.getContractFactory("SampleNFT");
-            const mysteryBox = MysteryBox.attach(
-                "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9"
-            );
+            const mysteryBox = MysteryBox.attach(mysteryBoxAddress);
 
             const nft = SampleNFT.attach(
                 nftContracts[args.contract as nftKeys]
