@@ -37,3 +37,6 @@ export const Banner = ({ image, content }) => {
         </Box>
     );
 };
+
+
+
